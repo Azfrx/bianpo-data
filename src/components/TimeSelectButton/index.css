@@ -1,0 +1,50 @@
+.timeSetting-panel {
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 140px;
+    background-color: #1a5589;
+    border: 1px solid #4a98ff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    opacity: 0.9;
+}
+.timeSetting-panel:hover {
+    cursor: default;
+}
+.timeSetting-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.timeSetting-item select {
+    width: 100px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    background-color: #005f80;
+    border-radius: 4px;
+}
+.timeSetting-close {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+}
+.timeSetting-close-cancel,
+.timeSetting-close-confirm {
+    background-color: #0fbd2c;
+    text-align: center;
+    padding: 2px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.timeSetting-close-cancel {
+    background-color: #ff4d4d;
+}

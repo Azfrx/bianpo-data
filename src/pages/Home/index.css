@@ -1,7 +1,7 @@
 .home {
     width: 100%;
     height: 100%;
-    background-color: #111F37;
+    background-color: #111f37;
     display: flex;
     flex-direction: column;
 }
@@ -12,11 +12,9 @@
     align-items: center;
     height: 80px;
     font-size: 40px;
-    color: #4A98FF;
-    text-shadow:
-        0 0 4px rgba(74, 152, 255, 0.4),
-        0 0 8px rgba(74, 152, 255, 0.3),
-        0 2px 4px rgba(0, 0, 0, 0.2);
+    color: #4a98ff;
+    text-shadow: 0 0 4px rgba(74, 152, 255, 0.4),
+        0 0 8px rgba(74, 152, 255, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .home-content {
@@ -29,7 +27,7 @@
     width: 250px;
     height: 100%;
     box-sizing: border-box;
-    border: 1px solid #4A98FF;
+    border: 1px solid #4a98ff;
     border-radius: 8px;
     border-left: none;
     padding-top: 5%;
@@ -40,7 +38,7 @@
 .left-led {
     height: 100%;
     width: 10px;
-    background-color: #4A98FF;
+    background-color: #4a98ff;
 }
 
 .left-list {
@@ -55,7 +53,7 @@
 .list-item {
     position: relative;
     height: 60px;
-    color: #BEBEBE;
+    color: #bebebe;
     font-size: 22px;
     cursor: pointer;
     display: flex;
@@ -69,7 +67,11 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right, rgba(44, 54, 74, 0.5), rgba(98, 124, 178, 0.3));
+    background: linear-gradient(
+        to right,
+        rgba(44, 54, 74, 0.5),
+        rgba(98, 124, 178, 0.3)
+    );
     transition: opacity 0.5s ease;
     z-index: 0;
     opacity: 1;
@@ -77,21 +79,29 @@
 
 /* hover 时的背景层 */
 .list-item:hover::before {
-    background: linear-gradient(to right, rgba(14, 51, 84, 0.3), rgba(14, 51, 84, 1));
+    background: linear-gradient(
+        to right,
+        rgba(14, 51, 84, 0.3),
+        rgba(14, 51, 84, 1)
+    );
     opacity: 0.8;
 }
 
 /* 激活时的背景 */
 .list-item.active::before {
-    background: linear-gradient(to right, rgba(14, 51, 84, 0.3), rgba(14, 51, 84, 1));
+    background: linear-gradient(
+        to right,
+        rgba(14, 51, 84, 0.3),
+        rgba(14, 51, 84, 1)
+    );
     opacity: 1;
 }
-.active{
-    color: #4A98FF;
+.active {
+    color: #4a98ff;
 }
 
 /* 内容层 */
-.list-item>* {
+.list-item > * {
     position: relative;
     z-index: 1;
 }
@@ -114,13 +124,173 @@
 .right-gx {
     flex: 1;
     box-sizing: border-box;
-    border: 1px solid #4A98FF;
+    border: 1px solid #4a98ff;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 10px 20px;
+    align-items: center;
+}
+.gx-options {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.option-left {
+    display: flex;
+    gap: 10px;
+}
+.option-import,
+.option-setting {
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #1a5589;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    position: relative;
+}
+.option-import:hover,
+.option-setting:hover {
+    background-color: #0e4569;
+}
+.setting-panel {
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 240px;
+    background-color: #1a5589;
+    border: 1px solid #4a98ff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    opacity: 0.9;
+}
+.setting-panel:hover {
+    cursor: default;
+}
+.setting-item {
+    display: flex;
+}
+.setting-selects {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+}
+.item-value,
+.item-value-active {
+    padding: 2px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.item-value:hover,
+.item-value-active:hover {
+    background-color: #005f80;
+}
+.item-value-active {
+    background-color: #0073a8;
+}
+.setting-close {
+    margin-left: auto;
+    background-color: #0fbd2c;
+    color: #ffffff;
+    text-align: center;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.setting-close:hover {
+    background-color: #008040;
+}
+
+.option-name {
+    font-size: 24px;
+    color: #4a98ff;
+    font-weight: bold;
+}
+.option-time {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ffffff;
+    font-size: 16px;
+}
+.time-value {
+    background-color: #1a5589;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    position: relative;
+}
+.time-value:hover {
+    background-color: #0e4569;
+}
+
+.timeSetting-panel {
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    background-color: #1a5589;
+    border: 1px solid #4a98ff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    opacity: 0.9;
+}
+.timeSetting-panel:hover {
+    cursor: default;
+}
+.timeSetting-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.timeSetting-item select {
+    width: 100px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    background-color: #005f80;
+    border-radius: 4px;
+}
+.timeSetting-close {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.timeSetting-close-cancel,
+.timeSetting-close-confirm {
+    background-color: #0fbd2c;
+    text-align: center;
+    padding: 2px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.timeSetting-close-cancel{
+    background-color: #ff4d4d;
+}
+
+.gx-grid {
+    width: 100%;
 }
 
 .right-camera {
     flex: 1;
     box-sizing: border-box;
-    border: 1px solid #4A98FF;
+    border: 1px solid #4a98ff;
     border-radius: 8px;
 }
