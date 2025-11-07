@@ -288,9 +288,104 @@
     width: 100%;
 }
 
+.gx-chart{
+    width: 100%;
+    flex: 1;
+    margin-top: 10px;
+}
+
 .right-camera {
     flex: 1;
     box-sizing: border-box;
     border: 1px solid #4a98ff;
     border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 10px 20px;
+}
+
+.camera-options{
+    display: flex;
+    justify-content: space-between;
+}
+.option-timefilter{
+    display: flex;
+}
+.timefilter-all, .timefilter-filter {
+    background-color: #0e4569;
+    padding: 6px 12px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.timefilter-all:hover, .timefilter-filter:hover {
+    background-color: #1a5589;
+}
+.timefilter-all{
+    border-top-left-radius: 6px;
+    border-bottom-left-radius: 6px;
+}
+.timefilter-filter{
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+.timefilter-active {
+    color: #ffffff;
+    border: 1px solid #4394D7;
+    background-color: #1A5589;
+}
+
+.option-selectCamera{
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #1a5589;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.option-selectCamera:hover {
+    background-color: #0e4569;
+}
+
+.selectCamera-panel{
+    position: absolute;
+    top: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    background-color: #1a5589;
+    border: 1px solid #4a98ff;
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    opacity: 0.9;
+    cursor: default;
+}
+
+.camera-item{
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #ffffff;
+    border: 1px solid #4affe1;
+    text-align: center;
+}
+
+.camera-active{
+    background-color: #0073a8;
+}
+.camera-chart{
+    width: 100%;
+    flex: 1;
+    margin-top: 10px;
 }

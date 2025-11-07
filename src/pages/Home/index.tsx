@@ -2,17 +2,36 @@ import React, { useMemo, useRef, useEffect, useState } from "react";
 // import HeatSquare from "../../components/HeatSquare";
 import HeatmapGrid from "../../components/HeatmapGrid";
 import TimeSelectButton from "../../components/TimeSelectButton";
+import LineChart from "../../components/LineChart";
+import generateCameraData from "../../utils/generateCameraData";
 import "./index.css";
 
 type StartCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 type Orientation = "horizontal" | "vertical";
+
+interface cameraItem {
+    id: number;
+    name: string;
+    active: boolean;
+}
 
 const fakeList = [
     { id: 1, name: "项目01", active: true },
     { id: 2, name: "项目02", active: false },
 ];
 
+const fakeCameraList = [
+    { id: 1, name: "摄像头01", active: true },
+    { id: 2, name: "摄像头02", active: false },
+    { id: 3, name: "摄像头03", active: false },
+];
+
 export default function Home() {
+    const { cameraNames, xData, yData } = generateCameraData();
+    console.log('cameraNames', cameraNames);
+    console.log('xData', xData);
+    console.log('yData', yData);
+
     const [list, setList] = useState(fakeList);
     const [settingOpening, setSettingOpening] = useState(false);
     const [showLeftTimeSetting, setShowLeftTimeSetting] = useState(false);
@@ -28,6 +47,20 @@ export default function Home() {
     const [rightMonth, setRightMonth] = useState(11);
     const [rightDay, setRightDay] = useState(5);
 
+    const [startYear, setStartYear] = useState(2025);
+    const [startMonth, setStartMonth] = useState(11);
+    const [startDay, setStartDay] = useState(1);
+    const [endYear, setEndYear] = useState(2025);
+    const [endMonth, setEndMonth] = useState(11);
+    const [endDay, setEndDay] = useState(5);
+    const [timeFilter, setTimeFilter] = useState("all");
+    const [showStartTimeSetting, setShowStartTimeSetting] = useState(false);
+    const [showEndTimeSetting, setShowEndTimeSetting] = useState(false);
+
+    const [showCameraOptions, setShowCameraOptions] = useState(false);
+    const [cameraList, setCameraList] = useState(fakeCameraList);
+    const selectedCameraCount = cameraList.filter((item) => item.active).length;
+
     const ClickItem = (id: number) => {
         setList((list) =>
             list.map((item) => ({
@@ -35,9 +68,6 @@ export default function Home() {
                 active: item.id === id,
             }))
         );
-    };
-    const showSetting = () => {
-        setSettingOpening(true);
     };
     const selectSetting = (value: StartCorner | Orientation) => {
         if (value === "horizontal" || value === "vertical") {
@@ -80,6 +110,49 @@ export default function Home() {
         setShowRightTimeSetting(false);
     };
 
+    const startTimeCancel = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowStartTimeSetting(false);
+    };
+    const startTimeConfirm = (
+        year: number,
+        month: number,
+        day: number,
+        e: React.MouseEvent
+    ) => {
+        e.stopPropagation();
+        setStartYear(year);
+        setStartMonth(month);
+        setStartDay(day);
+        setShowStartTimeSetting(false);
+    };
+
+    const endTimeCancel = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setShowEndTimeSetting(false);
+    };
+    const endTimeConfirm = (
+        year: number,
+        month: number,
+        day: number,
+        e: React.MouseEvent
+    ) => {
+        e.stopPropagation();
+        setEndYear(year);
+        setEndMonth(month);
+        setEndDay(day);
+        setShowEndTimeSetting(false);
+    };
+
+    const selectCamera = (id: number) => {
+        setCameraList((list) =>
+            list.map((item) => ({
+                ...item,
+                active: item.id === id ? !item.active : item.active,
+            }))
+        );
+    };
+
     return (
         <div className="home">
             <div className="home-name">数据中心</div>
@@ -115,11 +188,16 @@ export default function Home() {
                                 <div className="option-import">导入新数据</div>
                                 <div
                                     className="option-setting"
-                                    onClick={showSetting}
+                                    onClick={() => {
+                                        setSettingOpening(!settingOpening);
+                                    }}
                                 >
                                     光纤设置
                                     {settingOpening && (
-                                        <div className="setting-panel">
+                                        <div
+                                            className="setting-panel"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
                                             <div className="setting-item">
                                                 方向：
                                                 <div className="setting-selects">
@@ -130,7 +208,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "horizontal"
                                                             );
@@ -145,7 +224,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "vertical"
                                                             );
@@ -164,7 +244,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "top-left"
                                                             );
@@ -179,7 +260,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "top-right"
                                                             );
@@ -194,7 +276,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "bottom-left"
                                                             );
@@ -209,7 +292,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             selectSetting(
                                                                 "bottom-right"
                                                             );
@@ -229,7 +313,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setShowSquareName(
                                                                 true
                                                             );
@@ -244,7 +329,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setShowSquareName(
                                                                 false
                                                             );
@@ -264,7 +350,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setShowGridLine(
                                                                 true
                                                             );
@@ -279,7 +366,8 @@ export default function Home() {
                                                                 ? "item-value-active"
                                                                 : "item-value"
                                                         }`}
-                                                        onClick={() => {
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
                                                             setShowGridLine(
                                                                 false
                                                             );
@@ -352,9 +440,122 @@ export default function Home() {
                                 startCorner={start}
                             />
                         </div>
-                        <div className="gx-chart"></div>
+                        <div className="gx-chart">
+                            <LineChart
+                                title="光纤状态"
+                                xName="时间"
+                                yName={["状态"]}
+                                xData={xData}
+                                yData={yData}
+                            />
+                        </div>
                     </div>
-                    <div className="right-camera"></div>
+                    <div className="right-camera">
+                        <div className="camera-options">
+                            <div className="option-timefilter">
+                                <div
+                                    className={`timefilter-all ${
+                                        timeFilter === "all"
+                                            ? "timefilter-active"
+                                            : ""
+                                    }`}
+                                    onClick={() => setTimeFilter("all")}
+                                >
+                                    实时总数据
+                                </div>
+                                <div
+                                    className={`timefilter-filter ${
+                                        timeFilter === "filter"
+                                            ? "timefilter-active"
+                                            : ""
+                                    }`}
+                                    onClick={() => setTimeFilter("filter")}
+                                >
+                                    选择时间点
+                                </div>
+                            </div>
+                            <div
+                                className="option-selectCamera"
+                                onClick={() =>
+                                    setShowCameraOptions(!showCameraOptions)
+                                }
+                            >
+                                {selectedCameraCount !== 0
+                                    ? `当前已选${selectedCameraCount}个摄像头`
+                                    : "选择摄像头"}
+                                {showCameraOptions && (
+                                    <div
+                                        className="selectCamera-panel"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
+                                        {cameraList.map((item) => (
+                                            <div
+                                                key={item.id}
+                                                className={`camera-item ${
+                                                    item.active
+                                                        ? "camera-active"
+                                                        : ""
+                                                }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    selectCamera(item.id);
+                                                }}
+                                            >
+                                                {item.name}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                            <div className="option-time">
+                                所示数据时间
+                                <div
+                                    className="time-value"
+                                    onClick={() => {
+                                        setShowStartTimeSetting(true);
+                                    }}
+                                >
+                                    {`${startYear}年${startMonth}月${startDay}日`}
+                                    {showStartTimeSetting && (
+                                        <TimeSelectButton
+                                            year={startYear}
+                                            month={startMonth}
+                                            day={startDay}
+                                            onCancel={startTimeCancel}
+                                            onConfirm={startTimeConfirm}
+                                        />
+                                    )}
+                                </div>
+                                至
+                                <div
+                                    className="time-value"
+                                    onClick={() => {
+                                        setShowEndTimeSetting(true);
+                                    }}
+                                >
+                                    {`${endYear}年${endMonth}月${endDay}日`}
+                                    {showEndTimeSetting && (
+                                        <TimeSelectButton
+                                            year={endYear}
+                                            month={endMonth}
+                                            day={endDay}
+                                            onCancel={endTimeCancel}
+                                            onConfirm={endTimeConfirm}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="camera-chart">
+                            <LineChart
+                                title="摄像头数据"
+                                xName="时间"
+                                yName={cameraNames}
+                                xData={xData}
+                                yData={yData}
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
