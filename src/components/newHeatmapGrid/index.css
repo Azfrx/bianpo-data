@@ -1,0 +1,15 @@
+.heatmap-grid-container {
+    position: relative;
+    width: 100%;
+}
+
+.heatmap-grid {
+    display: grid;
+}
+
+.heatmap-track {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 500;
+}

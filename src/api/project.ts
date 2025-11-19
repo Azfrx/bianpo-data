@@ -6,9 +6,9 @@ export function getProjectList() {
 }
 
 // 根据项目 id + 日期获取光纤数据
-export function getFiberData(projectId: number, startDate: string, endDate: string) {
-    return request.get("/fiber/data", {
-        params: { projectId, startDate, endDate },
+export function getFiberData(projectId: number, startTime: string, endTime: string) {
+    return request.get("/fiber/list", {
+        params: { projectId, startTime, endTime },
     });
 }
 

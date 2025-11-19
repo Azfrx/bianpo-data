@@ -8,6 +8,7 @@
     position: relative;
     font-size: 12px;
     color: #ffffff8a;
+    max-height: 25px;
 }
 .heat-square:hover {
     transform: scale(1.08);
