@@ -119,8 +119,8 @@ export default function Home() {
                 const sensorEnd = formatDate(endYear, endMonth, endDay, "end");
 
                 await Promise.allSettled([
-                    initialFiberData(projectId, fiberStart, fiberEnd),
-                    initialSensorData(projectId, sensorStart, sensorEnd),
+                    toGetFiberData(projectId, fiberStart, fiberEnd),
+                    toGetSensorData(projectId, sensorStart, sensorEnd),
                 ]);
             }
         } catch (error) {
@@ -151,7 +151,13 @@ export default function Home() {
         return list;
     };
 
-    const initialFiberData = async (
+    // 获取当前激活的项目ID
+    const getActiveProjectId = () => {
+        return projectList.find((item) => item.active)?.projectId;
+    };
+
+    // 获取光纤数据
+    const toGetFiberData = async (
         projectId: number | undefined,
         startDate: string,
         endDate: string
@@ -161,29 +167,52 @@ export default function Home() {
         setGridData(fiberDataRes.data.fiberPoints);
     };
 
-    const initialSensorData = async (
+    // 获取传感器数据
+    const toGetSensorData = async (
         projectId: number | undefined,
         startDate: string,
         endDate: string
     ) => {
         if (!projectId) return;
-        const sensorDataRes = await getSensorList(
-            projectId,
-            startDate,
-            endDate
-        );
+        const sensorDataRes = await getSensorList(projectId, startDate, endDate);
         console.log("传感器数据：", sensorDataRes.data);
         const list: CameraItem[] = sensorDataRes.data;
         setCameraList(list);
+
         if (list.length > 0) {
-            setCameraNames(list.map((item: CameraItem) => item.sensorName));
-            setXData(list[0].records.map((record: Record) => record.timestamp));
-            setYData(
-                list.map((item: CameraItem) =>
-                    item.records.map((record: Record) => record.value)
-                )
+            const names = list.map((item: CameraItem) => item.sensorName);
+            setCameraNames(names);
+
+            const timestamps = list[0].records.map((record: Record) => record.timestamp).reverse();
+            setXData(timestamps);
+
+            const values = list.map((item: CameraItem) =>
+                item.records.map((record: Record) => record.value).reverse()
             );
+            setYData(values);
+
+            console.log("图表数据准备完成：", {
+                传感器数量: names.length,
+                时间点数量: timestamps.length,
+                数据维度: `${values.length}x${values[0]?.length || 0}`
+            });
         }
+    };
+
+    // 刷新光纤数据
+    const refreshFiberData = async () => {
+        const projectId = getActiveProjectId();
+        const fiberStart = formatDate(leftYear, leftMonth, leftDay, "start");
+        const fiberEnd = formatDate(rightYear, rightMonth, rightDay, "end");
+        await toGetFiberData(projectId, fiberStart, fiberEnd);
+    };
+
+    // 刷新传感器数据
+    const refreshSensorData = async () => {
+        const projectId = getActiveProjectId();
+        const sensorStart = formatDate(startYear, startMonth, startDay, "start");
+        const sensorEnd = formatDate(endYear, endMonth, endDay, "end");
+        await toGetSensorData(projectId, sensorStart, sensorEnd);
     };
 
     const ClickItem = (id: number) => {
@@ -279,9 +308,8 @@ export default function Home() {
                         {projectList.map((item) => (
                             <div
                                 key={item.projectId}
-                                className={`list-item ${
-                                    item.active ? "active" : ""
-                                }`}
+                                className={`list-item ${item.active ? "active" : ""
+                                    }`}
                                 onClick={() => ClickItem(item.projectId)}
                             >
                                 <div
@@ -318,12 +346,11 @@ export default function Home() {
                                                 方向：
                                                 <div className="setting-selects">
                                                     <div
-                                                        className={`${
-                                                            direction ===
+                                                        className={`${direction ===
                                                             "horizontal"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -334,12 +361,11 @@ export default function Home() {
                                                         横向
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            direction ===
+                                                        className={`${direction ===
                                                             "vertical"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -355,11 +381,10 @@ export default function Home() {
                                                 起点：
                                                 <div className="setting-selects">
                                                     <div
-                                                        className={`${
-                                                            start === "top-left"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                        className={`${start === "top-left"
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -370,12 +395,11 @@ export default function Home() {
                                                         左上
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            start ===
+                                                        className={`${start ===
                                                             "top-right"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -386,12 +410,11 @@ export default function Home() {
                                                         右上
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            start ===
+                                                        className={`${start ===
                                                             "bottom-left"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -402,12 +425,11 @@ export default function Home() {
                                                         左下
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            start ===
+                                                        className={`${start ===
                                                             "bottom-right"
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             selectSetting(
@@ -423,12 +445,11 @@ export default function Home() {
                                                 光纤名称：
                                                 <div className="setting-selects">
                                                     <div
-                                                        className={`${
-                                                            showSquareName ===
+                                                        className={`${showSquareName ===
                                                             true
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowSquareName(
@@ -439,12 +460,11 @@ export default function Home() {
                                                         开
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            showSquareName ===
+                                                        className={`${showSquareName ===
                                                             false
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowSquareName(
@@ -460,12 +480,11 @@ export default function Home() {
                                                 方向指示线：
                                                 <div className="setting-selects">
                                                     <div
-                                                        className={`${
-                                                            showGridLine ===
+                                                        className={`${showGridLine ===
                                                             true
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowGridLine(
@@ -476,12 +495,11 @@ export default function Home() {
                                                         开
                                                     </div>
                                                     <div
-                                                        className={`${
-                                                            showGridLine ===
+                                                        className={`${showGridLine ===
                                                             false
-                                                                ? "item-value-active"
-                                                                : "item-value"
-                                                        }`}
+                                                            ? "item-value-active"
+                                                            : "item-value"
+                                                            }`}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowGridLine(
@@ -544,6 +562,14 @@ export default function Home() {
                                         />
                                     )}
                                 </div>
+                                <div
+                                    className="time-refresh"
+                                    onClick={() => {
+                                        refreshFiberData()
+                                    }}
+                                >
+                                    获取数据
+                                </div>
                             </div>
                         </div>
                         <div className="gx-grid">
@@ -578,21 +604,19 @@ export default function Home() {
                         <div className="camera-options">
                             <div className="option-timefilter">
                                 <div
-                                    className={`timefilter-all ${
-                                        timeFilter === "all"
-                                            ? "timefilter-active"
-                                            : ""
-                                    }`}
+                                    className={`timefilter-all ${timeFilter === "all"
+                                        ? "timefilter-active"
+                                        : ""
+                                        }`}
                                     onClick={() => setTimeFilter("all")}
                                 >
                                     实时总数据
                                 </div>
                                 <div
-                                    className={`timefilter-filter ${
-                                        timeFilter === "filter"
-                                            ? "timefilter-active"
-                                            : ""
-                                    }`}
+                                    className={`timefilter-filter ${timeFilter === "filter"
+                                        ? "timefilter-active"
+                                        : ""
+                                        }`}
                                     onClick={() => setTimeFilter("filter")}
                                 >
                                     选择时间点
@@ -666,6 +690,14 @@ export default function Home() {
                                             onConfirm={endTimeConfirm}
                                         />
                                     )}
+                                </div>
+                                <div
+                                    className="time-refresh"
+                                    onClick={() => {
+                                        refreshSensorData()
+                                    }}
+                                >
+                                    获取数据
                                 </div>
                             </div>
                         </div>

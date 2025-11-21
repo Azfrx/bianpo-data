@@ -98,7 +98,9 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
                 axisTick: {
                     lineStyle: { color: "#fff" },
                 },
-                nameLocation: "middle",
+                nameLocation: "end",
+                nameGap: 5, // 调整名称与坐标轴的距离，数值越小越靠上
+                nameTextStyle: { color: "#fff" },
             },
             yAxis: {
                 name: yName[0],
@@ -147,7 +149,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
             resizeObserver.disconnect();
             chart.dispose();
         };
-    }, []);
+    }, [title, xName, yName, xData, yData, showPic]);
 
     return <div ref={chartRef} style={{ width: "100%", height: "100%" }} />;
 };

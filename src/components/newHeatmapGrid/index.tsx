@@ -95,26 +95,33 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                 className="heatmap-grid"
                 style={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(${numCols}, 1fr)`,
+                    gridTemplateColumns: `auto repeat(${numCols}, 1fr)`,
                     gap: "2px",
                 }}
             >
-                {grid.flat().map((cell, idx) =>
-                    cell ? (
-                        <div className="grid-cell" key={cell.pointId}>
-                            <HeatSquare
-                                name={cell.pointId}
-                                value={cell.value}
-                                maxDiff={maxDiff}
-                                showName={showSquareName}
-                            />
+                {grid.map((row, rowIndex) => (
+                    <React.Fragment key={`row-${rowIndex}`}>
+                        <div className="row-label">
+                            {rowIndex + 1}
                         </div>
-                    ) : (
-                        <div className="grid-cell" key={`empty-${idx}`}>
-                            <div style={{ aspectRatio: "1/1" }} />
-                        </div>
-                    )
-                )}
+                        {row.map((cell, colIndex) =>
+                            cell ? (
+                                <div className="grid-cell" key={cell.pointId}>
+                                    <HeatSquare
+                                        name={cell.pointId}
+                                        value={cell.value}
+                                        maxDiff={maxDiff}
+                                        showName={showSquareName}
+                                    />
+                                </div>
+                            ) : (
+                                <div className="grid-cell" key={`empty-${rowIndex}-${colIndex}`}>
+                                    <div style={{ aspectRatio: "1/1" }} />
+                                </div>
+                            )
+                        )}
+                    </React.Fragment>
+                ))}
             </div>
         </div>
     );

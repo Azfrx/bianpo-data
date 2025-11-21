@@ -68,11 +68,9 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(
-        to right,
-        rgba(44, 54, 74, 0.5),
-        rgba(98, 124, 178, 0.3)
-    );
+    background: linear-gradient(to right,
+            rgba(44, 54, 74, 0.5),
+            rgba(98, 124, 178, 0.3));
     transition: opacity 0.5s ease;
     z-index: 0;
     opacity: 1;
@@ -80,29 +78,26 @@
 
 /* hover 时的背景层 */
 .list-item:hover::before {
-    background: linear-gradient(
-        to right,
-        rgba(14, 51, 84, 0.3),
-        rgba(14, 51, 84, 1)
-    );
+    background: linear-gradient(to right,
+            rgba(14, 51, 84, 0.3),
+            rgba(14, 51, 84, 1));
     opacity: 0.8;
 }
 
 /* 激活时的背景 */
 .list-item.active::before {
-    background: linear-gradient(
-        to right,
-        rgba(14, 51, 84, 0.3),
-        rgba(14, 51, 84, 1)
-    );
+    background: linear-gradient(to right,
+            rgba(14, 51, 84, 0.3),
+            rgba(14, 51, 84, 1));
     opacity: 1;
 }
+
 .active {
     color: #4a98ff;
 }
 
 /* 内容层 */
-.list-item > * {
+.list-item>* {
     position: relative;
     z-index: 1;
 }
@@ -116,7 +111,7 @@
 
 .home-content-right {
     flex: 1;
-    height: calc(100% - 10px);
+    height: 100%;
     display: flex;
     flex-direction: column;
     margin-left: 10px;
@@ -134,6 +129,7 @@
     padding: 10px 20px 10px 20px;
     align-items: center;
 }
+
 .gx-options {
     width: 100%;
     height: 36px;
@@ -142,10 +138,12 @@
     align-items: center;
     margin-bottom: 10px;
 }
+
 .option-left {
     display: flex;
     gap: 10px;
 }
+
 .option-import,
 .option-setting {
     font-size: 16px;
@@ -156,10 +154,12 @@
     cursor: pointer;
     position: relative;
 }
+
 .option-import:hover,
 .option-setting:hover {
     background-color: #0e4569;
 }
+
 .setting-panel {
     position: absolute;
     top: 120%;
@@ -177,30 +177,37 @@
     z-index: 1000;
     opacity: 0.9;
 }
+
 .setting-panel:hover {
     cursor: default;
 }
+
 .setting-item {
     display: flex;
 }
+
 .setting-selects {
     flex: 1;
     display: flex;
     justify-content: space-around;
 }
+
 .item-value,
 .item-value-active {
     padding: 2px 6px;
     border-radius: 4px;
     cursor: pointer;
 }
+
 .item-value:hover,
 .item-value-active:hover {
     background-color: #005f80;
 }
+
 .item-value-active {
     background-color: #0073a8;
 }
+
 .setting-close {
     margin-left: auto;
     background-color: #0fbd2c;
@@ -210,6 +217,7 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
 .setting-close:hover {
     background-color: #008040;
 }
@@ -219,6 +227,7 @@
     color: #4a98ff;
     font-weight: bold;
 }
+
 .option-time {
     display: flex;
     align-items: center;
@@ -226,6 +235,7 @@
     color: #ffffff;
     font-size: 16px;
 }
+
 .time-value {
     background-color: #1a5589;
     border-radius: 6px;
@@ -233,8 +243,21 @@
     cursor: pointer;
     position: relative;
 }
+
 .time-value:hover {
     background-color: #0e4569;
+}
+
+.time-refresh{
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #2ab400;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+.time-refresh:hover {
+    background-color: #1a8c00;
 }
 
 .timeSetting-panel {
@@ -255,27 +278,33 @@
     z-index: 1000;
     opacity: 0.9;
 }
+
 .timeSetting-panel:hover {
     cursor: default;
 }
+
 .timeSetting-item {
     display: flex;
     align-items: center;
     gap: 4px;
 }
+
 .timeSetting-item select {
     width: 100px;
     padding: 4px 8px;
     border: 1px solid #ccc;
     background-color: #005f80;
     border-radius: 4px;
+    color: #ffffff;
 }
+
 .timeSetting-close {
     width: 100%;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
+
 .timeSetting-close-cancel,
 .timeSetting-close-confirm {
     background-color: #0fbd2c;
@@ -284,6 +313,7 @@
     border-radius: 6px;
     cursor: pointer;
 }
+
 .timeSetting-close-cancel {
     background-color: #ff4d4d;
 }
@@ -294,23 +324,29 @@
     display: flex;
     gap: 10px;
 }
+
 .gx-tips {
     display: flex;
     align-items: center;
     gap: 5px;
 }
+
 .tip-color {
     width: 10px;
     height: 80%;
     border-radius: 6px;
-    background: linear-gradient(
-        to bottom,
-        rgb(77, 166, 255),
-        /* 浅蓝 */ rgb(0, 255, 255),
-        /* 青 */ rgb(255, 255, 0),
-        /* 黄 */ rgb(255, 0, 0) /* 红 */
-    );
+    background: linear-gradient(to bottom,
+            rgb(77, 166, 255),
+            /* 浅蓝 */
+            rgb(0, 255, 255),
+            /* 青 */
+            rgb(255, 255, 0),
+            /* 黄 */
+            rgb(255, 0, 0)
+            /* 红 */
+        );
 }
+
 .tip-text {
     width: 10px;
     height: 100%;
@@ -319,9 +355,11 @@
     justify-content: space-around;
     color: #ffffff;
 }
+
 .tip-text-blue {
     color: #619eee;
 }
+
 .tip-text-red {
     color: #ff4d4d;
 }
@@ -346,9 +384,11 @@
     display: flex;
     justify-content: space-between;
 }
+
 .option-timefilter {
     display: flex;
 }
+
 .timefilter-all,
 .timefilter-filter {
     background-color: #0e4569;
@@ -359,18 +399,22 @@
     align-items: center;
     justify-content: center;
 }
+
 .timefilter-all:hover,
 .timefilter-filter:hover {
     background-color: #1a5589;
 }
+
 .timefilter-all {
     border-top-left-radius: 6px;
     border-bottom-left-radius: 6px;
 }
+
 .timefilter-filter {
     border-top-right-radius: 6px;
     border-bottom-right-radius: 6px;
 }
+
 .timefilter-active {
     color: #ffffff;
     border: 1px solid #4394d7;
@@ -389,6 +433,7 @@
     align-items: center;
     justify-content: center;
 }
+
 .option-selectCamera:hover {
     background-color: #0e4569;
 }
@@ -424,6 +469,7 @@
 .camera-active {
     background-color: #0073a8;
 }
+
 .camera-chart {
     width: 100%;
     flex: 1;
