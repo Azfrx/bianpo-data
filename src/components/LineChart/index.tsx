@@ -62,7 +62,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
                             flex-direction: column;
                             align-items: center;
                             ">
-                            <div>${item.seriesName}</div>
+                            <div>现场图片</div>
                             <img src="https://picsum.photos/600/600"
                                 alt="摄像头图片"
                                 style="width: 200px; height: 200px; margin: 0 6px;"
@@ -79,7 +79,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
             },
             legend: {
                 data: yName,
-                top: "10%",
+                top: "0%",
                 right: "10%",
                 textStyle: {
                     color: "#fff", // 图例文字颜色

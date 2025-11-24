@@ -25,6 +25,7 @@
 }
 
 .home-content-left {
+    position: relative;
     width: 250px;
     height: 100%;
     box-sizing: border-box;
@@ -34,6 +35,44 @@
     padding-top: 5%;
     display: flex;
     justify-content: space-between;
+    flex-shrink: 0;
+    /* 不允许被压缩 */
+}
+
+.left-stretch {
+    position: absolute;
+    width: max-content;
+    top: 0%;
+    left: 100%;
+    transform: translateX(-100%);
+    padding: 2px 10px 4px 10px;
+    background-color: #1a558988;
+    border: 1px solid #4a98ff;
+    color: #ffffff;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.left-stretch-close {
+    border-left: none;
+    border-bottom-right-radius: 8px;
+    border-top-right-radius: 8px;
+    font-size: 16px;
+}
+
+.left-stretch-open {
+    border-top: none;
+    border-right: none;
+    border-bottom-left-radius: 8px;
+    font-size: 24px;
+}
+
+.left-stretch:hover {
+    background-color: #1a5589;
 }
 
 .left-led {
@@ -111,6 +150,7 @@
 
 .home-content-right {
     flex: 1;
+    min-width: 0;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -226,6 +266,9 @@
     font-size: 24px;
     color: #4a98ff;
     font-weight: bold;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .option-time {
@@ -248,7 +291,7 @@
     background-color: #0e4569;
 }
 
-.time-refresh{
+.time-refresh {
     font-size: 16px;
     color: #ffffff;
     background-color: #2ab400;
@@ -256,6 +299,7 @@
     padding: 6px 12px;
     cursor: pointer;
 }
+
 .time-refresh:hover {
     background-color: #1a8c00;
 }
@@ -320,22 +364,22 @@
 
 .gx-grid {
     width: 100%;
-    height: 50%;
     display: flex;
     gap: 10px;
 }
 
 .gx-tips {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 5px;
 }
 
 .tip-color {
-    width: 10px;
-    height: 80%;
+    width: 150px;
+    height: 10px;
     border-radius: 6px;
-    background: linear-gradient(to bottom,
+    background: linear-gradient(to right,
             rgb(77, 166, 255),
             /* 浅蓝 */
             rgb(0, 255, 255),
@@ -348,10 +392,9 @@
 }
 
 .tip-text {
-    width: 10px;
-    height: 100%;
+    height: 20px;
+    width: 100%;
     display: flex;
-    flex-direction: column;
     justify-content: space-around;
     color: #ffffff;
 }
@@ -367,6 +410,7 @@
 .gx-chart {
     width: 100%;
     flex: 1;
+    margin-top: 10px;
 }
 
 .right-camera {
@@ -378,6 +422,40 @@
     display: flex;
     flex-direction: column;
     padding: 10px 20px 10px 20px;
+    position: relative;
+}
+
+.right-camera-stretch {
+    position: absolute;
+    width: max-content;
+    top: 0%;
+    left: 0%;
+    transform: translateY(0%);
+    padding: 4px 10px 4px 10px;
+    background-color: #1a558988;
+    border: 1px solid #4a98ff;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.right-camera-stretch:hover {
+    background-color: #1a5589;
+}
+
+.right-camera-stretch-close {
+    border-right: none;
+    border-bottom-left-radius: 8px;
+    font-size: 16px;
+}
+.right-camera-stretch-open {
+    border-top: none;
+    border-left: none;
+    border-bottom-right-radius: 8px;
+    font-size: 16px;
 }
 
 .camera-options {

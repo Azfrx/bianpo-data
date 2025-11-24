@@ -86,6 +86,10 @@ export default function Home() {
     const [yData, setYData] = useState<number[][]>([]);
     const [gridData, setGridData] = useState<RawPoint[]>([]);
 
+    const [openLeft, setOpenLeft] = useState(true);
+    const [openRightBottom, setOpenRightBottom] = useState(true);
+    const [openRightTop, setOpenRightTop] = useState(true);
+
     useEffect(() => {
         loadData();
     }, []);
@@ -298,11 +302,17 @@ export default function Home() {
         setShowEndTimeSetting(false);
     };
 
+    // 控制左侧伸缩
+    const stretchLeft = () => {
+        setOpenLeft(!openLeft);
+    }
+
     return (
         <div className="home">
-            <div className="home-name">数据中心</div>
+            <div className="home-name">边坡数据中心</div>
             <div className="home-content">
-                <div className="home-content-left">
+                <div className="home-content-left" style={openLeft ? {} : { width: '0px', border: 'none' }}>
+                    <div className={`left-stretch ${openLeft ? "left-stretch-open" : "left-stretch-close"}`} style={openLeft ? {} : { transform: 'translateX(0%) translateY(-100%)' }} onClick={stretchLeft}>{openLeft ? "<" : "展开项目列表>"}</div>
                     <div className="left-led"></div>
                     <div className="left-list">
                         {projectList.map((item) => (
@@ -330,7 +340,14 @@ export default function Home() {
                         <div className="gx-options">
                             <div className="option-left">
                                 <div className="option-import">导入新数据</div>
-                                <div
+                                <div className="gx-tips">
+                                    <div className="tip-text">
+                                        <span className="tip-text-blue">正常</span>
+                                        <span className="tip-text-red">异常</span>
+                                    </div>
+                                    <div className="tip-color"></div>
+                                </div>
+                                {/* <div
                                     className="option-setting"
                                     onClick={() => {
                                         setSettingOpening(!settingOpening);
@@ -522,9 +539,9 @@ export default function Home() {
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </div> */}
                             </div>
-                            <div className="option-name">光纤状态</div>
+                            <div className="option-name">应变数据</div>
                             <div className="option-time">
                                 初始时间
                                 <div
@@ -574,13 +591,6 @@ export default function Home() {
                         </div>
                         <div className="gx-grid">
                             <NewHeatmapGrid data={gridData} />
-                            <div className="gx-tips">
-                                <div className="tip-color"></div>
-                                <div className="tip-text">
-                                    <span className="tip-text-blue">正常</span>
-                                    <span className="tip-text-red">异常</span>
-                                </div>
-                            </div>
                             {/* <HeatmapGrid
                                 numRows={4}
                                 showSquareName={showSquareName}
@@ -601,6 +611,7 @@ export default function Home() {
                         </div>
                     </div>
                     <div className="right-camera">
+                        <div className={`right-camera-stretch ${openRightBottom ? 'right-camera-stretch-open' : 'right-camera-stretch-close'}`} onClick={() => setOpenRightBottom(!openRightBottom)}>{openRightBottom ? '∨' : '^'}</div>
                         <div className="camera-options">
                             <div className="option-timefilter">
                                 <div
@@ -622,6 +633,7 @@ export default function Home() {
                                     选择时间点
                                 </div>
                             </div>
+                            <div className="option-name">摄像头数据</div>
                             {/* <div
                                 className="option-selectCamera"
                                 onClick={() =>
@@ -703,7 +715,7 @@ export default function Home() {
                         </div>
                         <div className="camera-chart">
                             <LineChart
-                                title="摄像头数据"
+                                title=""
                                 xName="时间"
                                 yName={cameraNames}
                                 xData={xData}
