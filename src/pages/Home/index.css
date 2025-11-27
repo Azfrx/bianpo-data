@@ -13,8 +13,7 @@
     height: 60px;
     font-size: 40px;
     color: #4a98ff;
-    text-shadow: 0 0 4px rgba(74, 152, 255, 0.4),
-        0 0 8px rgba(74, 152, 255, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 0 4px rgba(74, 152, 255, 0.4), 0 0 8px rgba(74, 152, 255, 0.3), 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .home-content {
@@ -107,9 +106,7 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(to right,
-            rgba(44, 54, 74, 0.5),
-            rgba(98, 124, 178, 0.3));
+    background: linear-gradient(to right, rgba(44, 54, 74, 0.5), rgba(98, 124, 178, 0.3));
     transition: opacity 0.5s ease;
     z-index: 0;
     opacity: 1;
@@ -117,17 +114,13 @@
 
 /* hover 时的背景层 */
 .list-item:hover::before {
-    background: linear-gradient(to right,
-            rgba(14, 51, 84, 0.3),
-            rgba(14, 51, 84, 1));
+    background: linear-gradient(to right, rgba(14, 51, 84, 0.3), rgba(14, 51, 84, 1));
     opacity: 0.8;
 }
 
 /* 激活时的背景 */
 .list-item.active::before {
-    background: linear-gradient(to right,
-            rgba(14, 51, 84, 0.3),
-            rgba(14, 51, 84, 1));
+    background: linear-gradient(to right, rgba(14, 51, 84, 0.3), rgba(14, 51, 84, 1));
     opacity: 1;
 }
 
@@ -136,7 +129,7 @@
 }
 
 /* 内容层 */
-.list-item>* {
+.list-item > * {
     position: relative;
     z-index: 1;
 }
@@ -168,6 +161,29 @@
     flex-direction: column;
     padding: 10px 20px 10px 20px;
     align-items: center;
+    position: relative;
+}
+
+.fullscreenGX {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    padding: 6px 12px 6px 12px;
+    background-color: #1a558988;
+    border: 1px solid #4a98ff;
+    color: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    z-index: 1000;
+
+    border-bottom: none;
+    border-left: none;
+    border-bottom-left-radius: 8px;
+    border-top-right-radius: 8px;
+    font-size: 16px;
+}
+.fullscreenGX:hover {
+    background-color: #1a5589;
 }
 
 .gx-options {
@@ -267,7 +283,7 @@
     color: #4a98ff;
     font-weight: bold;
     position: absolute;
-    left: 50%;
+    left: calc(50% - 125px);
     transform: translateX(-50%);
 }
 
@@ -379,16 +395,7 @@
     width: 150px;
     height: 10px;
     border-radius: 6px;
-    background: linear-gradient(to right,
-            rgb(77, 166, 255),
-            /* 浅蓝 */
-            rgb(0, 255, 255),
-            /* 青 */
-            rgb(255, 255, 0),
-            /* 黄 */
-            rgb(255, 0, 0)
-            /* 红 */
-        );
+    background: linear-gradient(to right, rgb(77, 166, 255), /* 浅蓝 */ rgb(0, 255, 255), /* 青 */ rgb(255, 255, 0), /* 黄 */ rgb(255, 0, 0) /* 红 */);
 }
 
 .tip-text {
@@ -447,24 +454,28 @@
 }
 
 .right-camera-stretch-close {
-    border-right: none;
-    border-bottom-left-radius: 8px;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     font-size: 16px;
 }
 .right-camera-stretch-open {
     border-top: none;
     border-left: none;
     border-bottom-right-radius: 8px;
+    border-top-left-radius: 8px;
     font-size: 16px;
 }
 
 .camera-options {
     display: flex;
     justify-content: space-between;
+    position: relative;
 }
 
 .option-timefilter {
     display: flex;
+    margin-left: 30px;
 }
 
 .timefilter-all,

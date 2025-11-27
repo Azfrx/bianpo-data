@@ -1,8 +1,6 @@
 .heatmap-grid-container {
     position: relative;
     width: 100%;
-    overflow: auto;
-    overflow-x: hidden;
 }
 
 /* 现代化滚动条样式 */

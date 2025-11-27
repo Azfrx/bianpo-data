@@ -13,6 +13,56 @@ interface LineChartData {
 const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData) => {
     const chartRef = useRef(null); // 引用 DOM 节点
 
+    // 判断是否存在以 -Y 结尾的线（需要右轴）
+    const hasYLine = yName.some((name) => name.endsWith("-Y"));
+    // 构造 yAxis（始终是数组，至少包含左轴）
+    const yAxis = [
+        {
+            name: yName.find((n) => n.endsWith("-X"))?.replace(/-X$/, "") || "左轴",
+            type: "value",
+            nameTextStyle: { color: "#fff" },
+            axisLine: { lineStyle: { color: "#fff" } },
+            axisLabel: { color: "#fff" },
+            splitLine: { lineStyle: { color: "rgba(255,255,255,0.2)" } },
+            nameRotate: 0,
+        },
+    ];
+
+    // 如果有 -Y，则添加右轴
+    if (hasYLine) {
+        yAxis.push({
+            name: yName.find((n) => n.endsWith("-Y"))?.replace(/-Y$/, "") || "右轴",
+            type: "value",
+            nameTextStyle: { color: "#fff" },
+            axisLine: { lineStyle: { color: "#fff" } },
+            axisLabel: { color: "#fff" },
+            splitLine: { show: false }, // 右轴通常不显示网格线
+        });
+    }
+
+    // 构造 series，注意 yAxisIndex：以 -Y 结尾的走右轴（1），否则走左轴（0）
+    const series = yName.map((name, index) => {
+        const isY = name.endsWith("-Y");
+        const isX = name.endsWith("-X");
+
+        return {
+            name,
+            type: "line",
+            data: yData[index],
+            smooth: true,
+            yAxisIndex: isY ? 1 : 0, // 如果是 -Y => 1；否则默认 0
+            lineStyle: {
+                width: 3,
+                type: isX ? "solid" : isY ? "dashed" : "solid",
+            },
+            symbol: "circle",
+            symbolSize: 6,
+            areaStyle: { opacity: 0.1 },
+            // 可选颜色区分
+            // itemStyle: { color: isY ? '#F56C6C' : '#409EFF' },
+        };
+    });
+
     useEffect(() => {
         // 初始化 echarts 实例
         const chart = echarts.init(chartRef.current);
@@ -42,15 +92,16 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
             //     borderColor: "#555",
             //     borderWidth: 1,
             // },
-            tooltip: showPic ? {
-                trigger: "axis",
-                backgroundColor: "transparent", // 让背景透明
-                borderWidth: 0,
-                extraCssText: "box-shadow: none;", // 去掉阴影
-                formatter: function (params: any[]) {
-                    // params 是一个数组，每个元素代表当前点的系列数据
-                    const item = params[0];
-                    return `
+            tooltip: showPic
+                ? {
+                      trigger: "axis",
+                      backgroundColor: "transparent", // 让背景透明
+                      borderWidth: 0,
+                      extraCssText: "box-shadow: none;", // 去掉阴影
+                      formatter: function (params: any[]) {
+                          // params 是一个数组，每个元素代表当前点的系列数据
+                          const item = params[0];
+                          return `
                         <div style="
                             background: rgba(0, 0, 0, 0.29);
                             border: 1px solid rgba(0, 0, 0, 0.68);
@@ -69,18 +120,19 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
                             />
                         </div>
                         `;
-                },
-            } : {
-                trigger: "axis",
-                textStyle: { color: "#fff" },
-                backgroundColor: "rgba(0, 0, 0, 0.6)",
-                borderColor: "#555",
-                borderWidth: 1,
-            },
+                      },
+                  }
+                : {
+                      trigger: "axis",
+                      textStyle: { color: "#fff" },
+                      backgroundColor: "rgba(0, 0, 0, 0.6)",
+                      borderColor: "#555",
+                      borderWidth: 1,
+                  },
             legend: {
                 data: yName,
-                top: "0%",
-                right: "10%",
+                top: "4%",
+                right: "5%",
                 textStyle: {
                     color: "#fff", // 图例文字颜色
                 },
@@ -102,39 +154,8 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
                 nameGap: 5, // 调整名称与坐标轴的距离，数值越小越靠上
                 nameTextStyle: { color: "#fff" },
             },
-            yAxis: {
-                name: yName[0],
-                type: "value",
-                nameTextStyle: { color: "#fff" }, // y轴名称颜色
-                axisLine: {
-                    lineStyle: { color: "#fff" },
-                },
-                axisLabel: {
-                    color: "#fff", // y轴刻度文字颜色
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: "rgba(255,255,255,0.2)", // 网格线淡白色
-                    },
-                },
-                // nameLocation: "middle",
-                // nameGap: 40,
-                nameRotate: 0,
-            },
-            series: yName.map((name, index) => ({
-                name,
-                type: "line",
-                data: yData[index],
-                smooth: true,
-                lineStyle: {
-                    width: 3,
-                },
-                symbol: "circle",
-                symbolSize: 6,
-                areaStyle: {
-                    opacity: 0.1,
-                },
-            })),
+            yAxis,
+            series,
         };
 
         // 设置配置项
