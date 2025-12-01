@@ -25,3 +25,10 @@ export function getSensorList(projectId: number, startTime: string, endTime: str
         params: { projectId, startTime, endTime },
     });
 }
+
+// 返回项目中的光纤导入时间
+export function getFiberImportTime(projectId: number) {
+    return request.get("/fiber/timedata", {
+        params: { projectId },
+    });
+}

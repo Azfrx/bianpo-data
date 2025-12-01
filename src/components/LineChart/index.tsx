@@ -18,7 +18,8 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
     // 构造 yAxis（始终是数组，至少包含左轴）
     const yAxis = [
         {
-            name: yName.find((n) => n.endsWith("-X"))?.replace(/-X$/, "") || "左轴",
+            // name: yName.find((n) => n.endsWith("-X"))?.replace(/-X$/, "") || "左轴",
+            name: '0.1mm 位移',
             type: "value",
             nameTextStyle: { color: "#fff" },
             axisLine: { lineStyle: { color: "#fff" } },
@@ -31,13 +32,20 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
     // 如果有 -Y，则添加右轴
     if (hasYLine) {
         yAxis.push({
-            name: yName.find((n) => n.endsWith("-Y"))?.replace(/-Y$/, "") || "右轴",
+            // name: yName.find((n) => n.endsWith("-Y"))?.replace(/-Y$/, "") || "右轴",
+            name: '0.1mm 位移',
             type: "value",
             nameTextStyle: { color: "#fff" },
             axisLine: { lineStyle: { color: "#fff" } },
             axisLabel: { color: "#fff" },
             splitLine: { show: false }, // 右轴通常不显示网格线
         });
+    }
+
+    // 仅有左轴时，设置上下限
+    if (!hasYLine) {
+        yAxis[0].min = 1500;
+        yAxis[0].max = 1600;
     }
 
     // 构造 series，注意 yAxisIndex：以 -Y 结尾的走右轴（1），否则走左轴（0）
@@ -57,7 +65,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
             },
             symbol: "circle",
             symbolSize: 6,
-            areaStyle: { opacity: 0.1 },
+            areaStyle: { opacity: 0 },
             // 可选颜色区分
             // itemStyle: { color: isY ? '#F56C6C' : '#409EFF' },
         };
@@ -94,14 +102,14 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
             // },
             tooltip: showPic
                 ? {
-                      trigger: "axis",
-                      backgroundColor: "transparent", // 让背景透明
-                      borderWidth: 0,
-                      extraCssText: "box-shadow: none;", // 去掉阴影
-                      formatter: function (params: any[]) {
-                          // params 是一个数组，每个元素代表当前点的系列数据
-                          const item = params[0];
-                          return `
+                    trigger: "axis",
+                    backgroundColor: "transparent", // 让背景透明
+                    borderWidth: 0,
+                    extraCssText: "box-shadow: none;", // 去掉阴影
+                    formatter: function (params: any[]) {
+                        // params 是一个数组，每个元素代表当前点的系列数据
+                        const item = params[0];
+                        return `
                         <div style="
                             background: rgba(0, 0, 0, 0.29);
                             border: 1px solid rgba(0, 0, 0, 0.68);
@@ -120,15 +128,15 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
                             />
                         </div>
                         `;
-                      },
-                  }
+                    },
+                }
                 : {
-                      trigger: "axis",
-                      textStyle: { color: "#fff" },
-                      backgroundColor: "rgba(0, 0, 0, 0.6)",
-                      borderColor: "#555",
-                      borderWidth: 1,
-                  },
+                    trigger: "axis",
+                    textStyle: { color: "#fff" },
+                    backgroundColor: "rgba(0, 0, 0, 0.6)",
+                    borderColor: "#555",
+                    borderWidth: 1,
+                },
             legend: {
                 data: yName,
                 top: "4%",

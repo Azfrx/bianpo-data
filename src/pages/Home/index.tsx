@@ -5,8 +5,13 @@ import NewHeatmapGrid from "../../components/newHeatmapGrid";
 import TimeSelectButton from "../../components/TimeSelectButton";
 import LineChart from "../../components/LineChart";
 import generateCameraData from "../../utils/generateCameraData";
-import { getProjectList, getFiberData, getFiberPoint, getSensorList } from "@/api/project";
+import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime } from "@/api/project";
 import "./index.css";
+
+import downArrow from "../../assets/arrow-down.svg";
+import downArrow2 from "../../assets/arrow-down2.svg";
+import upArrow from "../../assets/arrow-up.svg";
+import colseArrow from "../../assets/arrow-close.svg";
 
 type StartCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 type Orientation = "horizontal" | "vertical";
@@ -63,6 +68,10 @@ export default function Home() {
     const [rightMonth, setRightMonth] = useState(11);
     const [rightDay, setRightDay] = useState(17);
 
+    const [fiberImportTime, setFiberImportTime] = useState<{ timeString: string }[]>([]);
+    const [fiberStartTime, setFiberStartTime] = useState<string>('2025-1-1');
+    const [fiberEndTime, setFiberEndTime] = useState<string>('2025-1-1');
+
     const [startYear, setStartYear] = useState(2025);
     const [startMonth, setStartMonth] = useState(11);
     const [startDay, setStartDay] = useState(16);
@@ -86,9 +95,8 @@ export default function Home() {
     const [gridData, setGridData] = useState<RawPoint[]>([]);
 
     const [openLeft, setOpenLeft] = useState(true);
-    const [openRightBottom, setOpenRightBottom] = useState(true);
-    // 控制右上角全屏
-    const [openRightTop, setOpenRightTop] = useState(false);
+    const [fullScreenRightBottom, setFullScreenRightBottom] = useState(false);
+    const [fullScreenRightTop, setFullScreenRightTop] = useState(false);
 
     useEffect(() => {
         loadData();
@@ -99,8 +107,20 @@ export default function Home() {
             if (list.length > 0) {
                 const projectId = list.find((item: Project) => item.active)?.projectId;
 
-                const fiberStart = formatDate(leftYear, leftMonth, leftDay, "start");
-                const fiberEnd = formatDate(rightYear, rightMonth, rightDay, "end");
+                const importTime = await getActiveProjectFiberImportTime(projectId);
+                setFiberImportTime(importTime);
+                const importTimeLength = importTime.length;
+                if (importTimeLength < 2) {
+                    console.warn("光纤导入时间数据不足，无法设置时间范围");
+                    return;
+                }
+                const fiberStartTime = importTime[importTimeLength - 2].timeString.split(" ")[0];
+                const fiberEndTime = importTime[importTimeLength - 1].timeString.split(" ")[0];
+                setFiberStartTime(fiberStartTime);
+                setFiberEndTime(fiberEndTime);
+
+                const fiberStart = formatDate(Number(fiberStartTime.split("-")[0]), Number(fiberStartTime.split("-")[1]), Number(fiberStartTime.split("-")[2]), "start");
+                const fiberEnd = formatDate(Number(fiberEndTime.split("-")[0]), Number(fiberEndTime.split("-")[1]), Number(fiberEndTime.split("-")[2]), "end");
 
                 const sensorStart = formatDate(startYear, startMonth, startDay, "start");
                 const sensorEnd = formatDate(endYear, endMonth, endDay, "end");
@@ -131,6 +151,14 @@ export default function Home() {
     // 获取当前激活的项目ID
     const getActiveProjectId = () => {
         return projectList.find((item) => item.active)?.projectId;
+    };
+
+    // 获取当前项目的光纤导入时间
+    const getActiveProjectFiberImportTime = async (projectId: number | undefined) => {
+        if (!projectId) return;
+        const importTimeRes = await getFiberImportTime(projectId);
+        console.log("光纤导入时间：", importTimeRes.data);
+        return importTimeRes.data;
     };
 
     // 获取光纤数据
@@ -189,8 +217,8 @@ export default function Home() {
     // 刷新光纤数据
     const refreshFiberData = async () => {
         const projectId = getActiveProjectId();
-        const fiberStart = formatDate(leftYear, leftMonth, leftDay, "start");
-        const fiberEnd = formatDate(rightYear, rightMonth, rightDay, "end");
+        const fiberStart = formatDate(Number(fiberStartTime.split("-")[0]), Number(fiberStartTime.split("-")[1]), Number(fiberStartTime.split("-")[2]), "start");
+        const fiberEnd = formatDate(Number(fiberEndTime.split("-")[0]), Number(fiberEndTime.split("-")[1]), Number(fiberEndTime.split("-")[2]), "end");
         await toGetFiberData(projectId, fiberStart, fiberEnd);
     };
 
@@ -222,6 +250,17 @@ export default function Home() {
             }))
         );
     };
+
+    const selectFiberStartTime = (timeString: string) => {
+        setFiberStartTime(timeString.split(' ')[0]);
+        setShowLeftTimeSetting(false);
+    };
+
+    const selectFiberEndTime = (timeString: string) => {
+        setFiberEndTime(timeString.split(' ')[0]);
+        setShowRightTimeSetting(false);
+    };
+
     const selectSetting = (value: StartCorner | Orientation) => {
         if (value === "horizontal" || value === "vertical") {
             setDirection(value);
@@ -277,36 +316,55 @@ export default function Home() {
         setShowEndTimeSetting(false);
     };
 
+    const timeToCN = (time: string) => {
+        const [year, month, day] = time.split("-");
+        return `${year}年${month}月${day}日`;
+    };
+
     // 控制左侧伸缩
     const stretchLeft = () => {
         setOpenLeft(!openLeft);
     };
 
-    const fullscreenGX = () => {
-        if (openRightTop) {
-            setOpenRightBottom(true);
+    const fullscreenFiber = () => {
+        if (fullScreenRightTop) {
+            // 展开时 收缩
             setOpenLeft(true);
+            setFullScreenRightBottom(false);
+            setFullScreenRightTop(false);
         } else {
-            setOpenRightBottom(false);
+            // 正常时 全屏
             setOpenLeft(false);
+            setFullScreenRightBottom(false);
+            setFullScreenRightTop(true);
         }
-        setOpenRightTop(!openRightTop);
     };
+
+    const fullScreenCamera = () => {
+        if (fullScreenRightBottom) {
+            // 展开时 收缩
+            setOpenLeft(true);
+            setFullScreenRightTop(false);
+            setFullScreenRightBottom(false);
+        } else {
+            // 正常时 全屏
+            setOpenLeft(false);
+            setFullScreenRightTop(false);
+            setFullScreenRightBottom(true);
+        }
+    };
+
+    const fiberStretchStyle = fullScreenRightTop ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.5s ease" } : (fullScreenRightBottom ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.5s ease", border: 'none' } : {});
+    const cameraStretchStyle = fullScreenRightBottom ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.5s ease" } : (fullScreenRightTop ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.5s ease", border: 'none' } : {});
 
     return (
         <div className="home">
             <div className="home-name">边坡数据中心</div>
             <div className="home-content">
-                <div className="home-content-left" style={openLeft ? {} : { width: "0px", border: "none" }}>
+                <div className="home-content-left" style={openLeft ? { width: "250px" } : { width: "0px" }}>
                     <div
                         className={`left-stretch ${openLeft ? "left-stretch-open" : "left-stretch-close"}`}
-                        style={
-                            openLeft
-                                ? {}
-                                : {
-                                      transform: "translateX(0%) translateY(-100%)",
-                                  }
-                        }
+                        style={openLeft ? {} : { transform: "translateX(0%) translateY(-100%)", }}
                         onClick={stretchLeft}
                     >
                         {openLeft ? "<" : "展开项目列表>"}
@@ -326,10 +384,14 @@ export default function Home() {
                         ))}
                     </div>
                 </div>
-                <div className="home-content-right">
-                    <div className="right-gx" style={openRightBottom ? {} : { height: "calc(100% - 45px)", maxHeight: "calc(100% - 45px)" }}>
-                        <div className={`fullscreenGX`} onClick={fullscreenGX}>
+                <div className="home-content-right" style={fullScreenRightBottom || fullScreenRightBottom ? {gap: 0} : {}}>
+                    <div className="right-gx" style={fiberStretchStyle}>
+                        {/* <div className={`closeFiber`} onClick={fullscreenFiber}>
                             ⤢
+                        </div> */}
+                        {/* <img src={upArrow} width="20" className={`closeFiber`} onClick={closeFiber} /> */}
+                        <div className={`fullscreenIcon ${fullScreenRightTop ? "fullscreenIcon-active" : ""}`} onClick={fullscreenFiber}>
+                            {fullScreenRightTop ? (<img src={colseArrow} width="24" />) : "⤢"}
                         </div>
                         <div className="gx-options">
                             <div className="option-left">
@@ -479,21 +541,29 @@ export default function Home() {
                                 <div
                                     className="time-value"
                                     onClick={() => {
-                                        setShowLeftTimeSetting(true);
+                                        setShowLeftTimeSetting(!showLeftTimeSetting);
                                     }}
                                 >
-                                    {`${leftYear}年${leftMonth}月${leftDay}日`}
-                                    {showLeftTimeSetting && <TimeSelectButton year={leftYear} month={leftMonth} day={leftDay} onCancel={leftTimeCancel} onConfirm={leftTimeConfirm} />}
+                                    {timeToCN(fiberStartTime)}
+                                    <div className={`projectImportTime ${showLeftTimeSetting ? "open" : ""}`}>
+                                        {fiberImportTime.map((item, index) => (
+                                            <div className={`projectImportTime-item ${fiberStartTime === item.timeString.split(' ')[0] ? "projectImportTime-active" : ""}`} onClick={() => { selectFiberStartTime(item.timeString) }}>{item.timeString}</div>
+                                        ))}
+                                    </div>
                                 </div>
                                 结束时间
                                 <div
                                     className="time-value"
                                     onClick={() => {
-                                        setShowRightTimeSetting(true);
+                                        setShowRightTimeSetting(!showRightTimeSetting);
                                     }}
                                 >
-                                    {`${rightYear}年${rightMonth}月${rightDay}日`}
-                                    {showRightTimeSetting && <TimeSelectButton year={rightYear} month={rightMonth} day={rightDay} onCancel={rightTimeCancel} onConfirm={rightTimeConfirm} />}
+                                    {timeToCN(fiberEndTime)}
+                                    <div className={`projectImportTime ${showRightTimeSetting ? "open" : ""}`}>
+                                        {fiberImportTime.map((item, index) => (
+                                            <div className={`projectImportTime-item ${fiberEndTime === item.timeString.split(' ')[0] ? "projectImportTime-active" : ""}`} onClick={() => { selectFiberEndTime(item.timeString) }}>{item.timeString}</div>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div
                                     className="time-refresh"
@@ -525,11 +595,12 @@ export default function Home() {
                             <LineChart title="" xName="时间" yName={[`${pointId}点位数据`]} xData={pointXData} yData={pointYData} />
                         </div>
                     </div>
-                    <div className="right-camera" style={openRightBottom ? {} : { height: "0px", border: "none", flex: 0 }}>
-                        <div className={`right-camera-stretch ${openRightBottom ? "right-camera-stretch-open" : "right-camera-stretch-close"}`} onClick={() => setOpenRightBottom(!openRightBottom)}>
-                            {openRightBottom ? "∨" : "点击展开摄像头数据"}
-                        </div>
-                        <div className="camera-options" style={openRightBottom ? {} : { display: "none" }}>
+                    <div className="right-camera" style={cameraStretchStyle}>
+                        {/* <div className={`right-camera-stretch ${openRightBottom ? "right-camera-stretch-open" : "right-camera-stretch-close"}`} onClick={() => setOpenRightBottom(!openRightBottom)}>
+                            {openRightBottom ? (<img src={downArrow2} width="20px" />) : "点击展开摄像头数据"}
+                        </div> */}
+                        <div className={`fullscreenIcon ${fullScreenRightBottom ? "fullscreenIcon-active" : ""}`} onClick={fullScreenCamera}>{fullScreenRightBottom ? (<img src={colseArrow} width="24" />) : "⤢"}</div>
+                        <div className="camera-options">
                             <div className="option-timefilter">
                                 <div className={`timefilter-all ${timeFilter === "all" ? "timefilter-active" : ""}`} onClick={() => setTimeFilter("all")}>
                                     实时总数据
@@ -572,7 +643,7 @@ export default function Home() {
                                 )}
                             </div> */}
                             <div className="option-time">
-                                所示数据时间
+                                初始时间
                                 <div
                                     className="time-value"
                                     onClick={() => {
@@ -582,7 +653,7 @@ export default function Home() {
                                     {`${startYear}年${startMonth}月${startDay}日`}
                                     {showStartTimeSetting && <TimeSelectButton year={startYear} month={startMonth} day={startDay} onCancel={startTimeCancel} onConfirm={startTimeConfirm} />}
                                 </div>
-                                至
+                                结束时间
                                 <div
                                     className="time-value"
                                     onClick={() => {
@@ -602,7 +673,7 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="camera-chart" style={openRightBottom ? {} : { display: "none" }}>
+                        <div className="camera-chart" >
                             <LineChart title="" xName="时间" yName={cameraNames} xData={xData} yData={yData} showPic={true} />
                         </div>
                     </div>
