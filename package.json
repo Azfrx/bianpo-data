@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "antd": "^6.0.0",
     "axios": "^1.13.2",
+    "dayjs": "^1.11.19",
     "echarts": "^6.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

@@ -19,7 +19,6 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
     const yAxis = [
         {
             // name: yName.find((n) => n.endsWith("-X"))?.replace(/-X$/, "") || "左轴",
-            name: '0.1mm 位移',
             type: "value",
             nameTextStyle: { color: "#fff" },
             axisLine: { lineStyle: { color: "#fff" } },
@@ -33,7 +32,6 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
     if (hasYLine) {
         yAxis.push({
             // name: yName.find((n) => n.endsWith("-Y"))?.replace(/-Y$/, "") || "右轴",
-            name: '0.1mm 位移',
             type: "value",
             nameTextStyle: { color: "#fff" },
             axisLine: { lineStyle: { color: "#fff" } },
@@ -46,6 +44,10 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic }: LineChartData
     if (!hasYLine) {
         yAxis[0].min = 1500;
         yAxis[0].max = 1600;
+        // yAxis[0].name = '0.1mm 位移';
+    } else {
+        yAxis[0].name = '0.01mm 位移';
+        yAxis[1].name = '0.01mm 位移';
     }
 
     // 构造 series，注意 yAxisIndex：以 -Y 结尾的走右轴（1），否则走左轴（0）

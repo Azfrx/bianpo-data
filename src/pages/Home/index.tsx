@@ -5,6 +5,9 @@ import NewHeatmapGrid from "../../components/newHeatmapGrid";
 import TimeSelectButton from "../../components/TimeSelectButton";
 import LineChart from "../../components/LineChart";
 import generateCameraData from "../../utils/generateCameraData";
+import { DatePicker, Select } from 'antd';
+import dayjs from 'dayjs';
+
 import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime } from "@/api/project";
 import "./index.css";
 
@@ -61,23 +64,26 @@ export default function Home() {
     const [showGridLine, setShowGridLine] = useState(true);
     const [direction, setDirection] = useState<Orientation>("horizontal");
     const [start, setStart] = useState<StartCorner>("top-left");
-    const [leftYear, setLeftYear] = useState(2025);
-    const [leftMonth, setLeftMonth] = useState(9);
-    const [leftDay, setLeftDay] = useState(17);
-    const [rightYear, setRightYear] = useState(2025);
-    const [rightMonth, setRightMonth] = useState(11);
-    const [rightDay, setRightDay] = useState(17);
+    // const [leftYear, setLeftYear] = useState(2025);
+    // const [leftMonth, setLeftMonth] = useState(9);
+    // const [leftDay, setLeftDay] = useState(17);
+    // const [rightYear, setRightYear] = useState(2025);
+    // const [rightMonth, setRightMonth] = useState(11);
+    // const [rightDay, setRightDay] = useState(17);
 
     const [fiberImportTime, setFiberImportTime] = useState<{ timeString: string }[]>([]);
     const [fiberStartTime, setFiberStartTime] = useState<string>('2025-1-1');
     const [fiberEndTime, setFiberEndTime] = useState<string>('2025-1-1');
 
-    const [startYear, setStartYear] = useState(2025);
-    const [startMonth, setStartMonth] = useState(11);
-    const [startDay, setStartDay] = useState(16);
-    const [endYear, setEndYear] = useState(2025);
-    const [endMonth, setEndMonth] = useState(11);
-    const [endDay, setEndDay] = useState(18);
+    const [cameraStartDate, setCameraStartDate] = useState<string>('2025-11-16');
+    const [cameraEndDate, setCameraEndDate] = useState<string>('2025-11-18');
+
+    // const [startYear, setStartYear] = useState(2025);
+    // const [startMonth, setStartMonth] = useState(11);
+    // const [startDay, setStartDay] = useState(16);
+    // const [endYear, setEndYear] = useState(2025);
+    // const [endMonth, setEndMonth] = useState(11);
+    // const [endDay, setEndDay] = useState(18);
     const [timeFilter, setTimeFilter] = useState("all");
     const [showStartTimeSetting, setShowStartTimeSetting] = useState(false);
     const [showEndTimeSetting, setShowEndTimeSetting] = useState(false);
@@ -97,6 +103,9 @@ export default function Home() {
     const [openLeft, setOpenLeft] = useState(true);
     const [fullScreenRightBottom, setFullScreenRightBottom] = useState(false);
     const [fullScreenRightTop, setFullScreenRightTop] = useState(false);
+
+    const [curTimeFilter, setCurTimeFilter] = useState('1h');
+    const timeFilterOptions = ['1h', '6h', '12h', '24h'];
 
     useEffect(() => {
         loadData();
@@ -122,8 +131,10 @@ export default function Home() {
                 const fiberStart = formatDate(Number(fiberStartTime.split("-")[0]), Number(fiberStartTime.split("-")[1]), Number(fiberStartTime.split("-")[2]), "start");
                 const fiberEnd = formatDate(Number(fiberEndTime.split("-")[0]), Number(fiberEndTime.split("-")[1]), Number(fiberEndTime.split("-")[2]), "end");
 
-                const sensorStart = formatDate(startYear, startMonth, startDay, "start");
-                const sensorEnd = formatDate(endYear, endMonth, endDay, "end");
+                const [startYear, startMonth, startDay] = cameraStartDate.split('-');
+                const [endYear, endMonth, endDay] = cameraEndDate.split('-');
+                const sensorStart = formatDate(Number(startYear), Number(startMonth), Number(startDay), "start");
+                const sensorEnd = formatDate(Number(endYear), Number(endMonth), Number(endDay), "end");
 
                 await Promise.allSettled([toGetFiberData(projectId, fiberStart, fiberEnd), toGetSensorData(projectId, sensorStart, sensorEnd)]);
             }
@@ -225,8 +236,10 @@ export default function Home() {
     // 刷新传感器数据
     const refreshSensorData = async () => {
         const projectId = getActiveProjectId();
-        const sensorStart = formatDate(startYear, startMonth, startDay, "start");
-        const sensorEnd = formatDate(endYear, endMonth, endDay, "end");
+        const [startYear, startMonth, startDay] = cameraStartDate.split('-');
+        const [endYear, endMonth, endDay] = cameraEndDate.split('-');
+        const sensorStart = formatDate(Number(startYear), Number(startMonth), Number(startDay), "start");
+        const sensorEnd = formatDate(Number(endYear), Number(endMonth), Number(endDay), "end");
         await toGetSensorData(projectId, sensorStart, sensorEnd);
     };
 
@@ -261,6 +274,20 @@ export default function Home() {
         setShowRightTimeSetting(false);
     };
 
+    const onChangeCameraStartDate = (date: any, dateString: string | string[]) => {
+        console.log('dateString', dateString);
+        setCameraStartDate(dateString as string);
+    }
+    const onChangeCameraEndDate = (date: any, dateString: string | string[]) => {
+        console.log('dateString', dateString);
+        setCameraEndDate(dateString as string);
+    }
+
+    const timeFilterChange = (value: string) => {
+        console.log('选择时间间隔为:', value);
+        setCurTimeFilter(value.split(':')[0]);
+    }
+
     const selectSetting = (value: StartCorner | Orientation) => {
         if (value === "horizontal" || value === "vertical") {
             setDirection(value);
@@ -269,52 +296,52 @@ export default function Home() {
         }
     };
 
-    const leftTimeCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowLeftTimeSetting(false);
-    };
-    const leftTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setLeftYear(year);
-        setLeftMonth(month);
-        setLeftDay(day);
-        setShowLeftTimeSetting(false);
-    };
-    const rightTimeCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowRightTimeSetting(false);
-    };
-    const rightTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setRightYear(year);
-        setRightMonth(month);
-        setRightDay(day);
-        setShowRightTimeSetting(false);
-    };
+    // const leftTimeCancel = (e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setShowLeftTimeSetting(false);
+    // };
+    // const leftTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setLeftYear(year);
+    //     setLeftMonth(month);
+    //     setLeftDay(day);
+    //     setShowLeftTimeSetting(false);
+    // };
+    // const rightTimeCancel = (e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setShowRightTimeSetting(false);
+    // };
+    // const rightTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setRightYear(year);
+    //     setRightMonth(month);
+    //     setRightDay(day);
+    //     setShowRightTimeSetting(false);
+    // };
 
-    const startTimeCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowStartTimeSetting(false);
-    };
-    const startTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setStartYear(year);
-        setStartMonth(month);
-        setStartDay(day);
-        setShowStartTimeSetting(false);
-    };
+    // const startTimeCancel = (e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setShowStartTimeSetting(false);
+    // };
+    // const startTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setStartYear(year);
+    //     setStartMonth(month);
+    //     setStartDay(day);
+    //     setShowStartTimeSetting(false);
+    // };
 
-    const endTimeCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setShowEndTimeSetting(false);
-    };
-    const endTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setEndYear(year);
-        setEndMonth(month);
-        setEndDay(day);
-        setShowEndTimeSetting(false);
-    };
+    // const endTimeCancel = (e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setShowEndTimeSetting(false);
+    // };
+    // const endTimeConfirm = (year: number, month: number, day: number, e: React.MouseEvent) => {
+    //     e.stopPropagation();
+    //     setEndYear(year);
+    //     setEndMonth(month);
+    //     setEndDay(day);
+    //     setShowEndTimeSetting(false);
+    // };
 
     const timeToCN = (time: string) => {
         const [year, month, day] = time.split("-");
@@ -384,7 +411,7 @@ export default function Home() {
                         ))}
                     </div>
                 </div>
-                <div className="home-content-right" style={fullScreenRightBottom || fullScreenRightBottom ? {gap: 0} : {}}>
+                <div className="home-content-right" style={fullScreenRightBottom || fullScreenRightBottom ? { gap: 0 } : {}}>
                     <div className="right-gx" style={fiberStretchStyle}>
                         {/* <div className={`closeFiber`} onClick={fullscreenFiber}>
                             ⤢
@@ -596,20 +623,23 @@ export default function Home() {
                         </div>
                     </div>
                     <div className="right-camera" style={cameraStretchStyle}>
-                        {/* <div className={`right-camera-stretch ${openRightBottom ? "right-camera-stretch-open" : "right-camera-stretch-close"}`} onClick={() => setOpenRightBottom(!openRightBottom)}>
-                            {openRightBottom ? (<img src={downArrow2} width="20px" />) : "点击展开摄像头数据"}
-                        </div> */}
                         <div className={`fullscreenIcon ${fullScreenRightBottom ? "fullscreenIcon-active" : ""}`} onClick={fullScreenCamera}>{fullScreenRightBottom ? (<img src={colseArrow} width="24" />) : "⤢"}</div>
                         <div className="camera-options">
-                            <div className="option-timefilter">
-                                <div className={`timefilter-all ${timeFilter === "all" ? "timefilter-active" : ""}`} onClick={() => setTimeFilter("all")}>
-                                    实时总数据
-                                </div>
-                                <div className={`timefilter-filter ${timeFilter === "filter" ? "timefilter-active" : ""}`} onClick={() => setTimeFilter("filter")}>
-                                    选择时间点
-                                </div>
-                            </div>
-                            <div className="option-name">摄像头数据</div>
+                            {/* <select value={curTimeFilter} onChange={timeFilterChange} className="camera-timeFilter">
+                                {timeFilterOptions.map((option) => (
+                                    <option key={option} value={option}>
+                                        {option}
+                                    </option>
+                                ))}
+                            </select> */}
+                            <Select
+                                className="camera-timeFilter"
+                                value={`数据时间间隔:${curTimeFilter}`}
+                                onChange={timeFilterChange}
+                                options={timeFilterOptions.map(v => ({ value: v, label: v }))}
+                                dropdownClassName="camera-timeFilter-dropdown"
+                            />
+                            <div className="option-name">靶点数据</div>
                             {/* <div
                                 className="option-selectCamera"
                                 onClick={() =>
@@ -644,25 +674,9 @@ export default function Home() {
                             </div> */}
                             <div className="option-time">
                                 初始时间
-                                <div
-                                    className="time-value"
-                                    onClick={() => {
-                                        setShowStartTimeSetting(true);
-                                    }}
-                                >
-                                    {`${startYear}年${startMonth}月${startDay}日`}
-                                    {showStartTimeSetting && <TimeSelectButton year={startYear} month={startMonth} day={startDay} onCancel={startTimeCancel} onConfirm={startTimeConfirm} />}
-                                </div>
+                                <DatePicker value={dayjs(cameraStartDate)} onChange={onChangeCameraStartDate} placeholder="选择日期" className="date-picker" />
                                 结束时间
-                                <div
-                                    className="time-value"
-                                    onClick={() => {
-                                        setShowEndTimeSetting(true);
-                                    }}
-                                >
-                                    {`${endYear}年${endMonth}月${endDay}日`}
-                                    {showEndTimeSetting && <TimeSelectButton year={endYear} month={endMonth} day={endDay} onCancel={endTimeCancel} onConfirm={endTimeConfirm} />}
-                                </div>
+                                <DatePicker value={dayjs(cameraEndDate)} onChange={onChangeCameraEndDate} placeholder="选择日期" className="date-picker" />
                                 <div
                                     className="time-refresh"
                                     onClick={() => {

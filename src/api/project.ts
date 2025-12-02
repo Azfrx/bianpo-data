@@ -19,7 +19,7 @@ export function getFiberPoint(pointId: number) {
     });
 }
 
-// 获取传感器列表
+// 获取传感器列表 TODO: timeGap number
 export function getSensorList(projectId: number, startTime: string, endTime: string) {
     return request.get("/sensor/data", {
         params: { projectId, startTime, endTime },

@@ -319,6 +319,36 @@ div {
     font-size: 16px;
 }
 
+.date-picker {
+    background-color: #1a5589;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 8px;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+.date-picker .ant-picker-input input::placeholder {
+    color: #ffffff;
+}
+.date-picker .ant-picker-input .ant-picker-suffix {
+    color: #ffffff;
+}
+
+.date-picker .ant-picker-input-placeholder input {
+    color: #ffffff;
+}
+
+.date-picker:hover {
+    background-color: #0e4569;
+}
+
+.ant-picker-outlined:focus,
+.ant-picker-outlined:focus-within {
+    background-color: #1a5589;
+    color: #ffffff;
+}
+
 .time-value {
     background-color: #1a5589;
     border-radius: 6px;
@@ -579,6 +609,101 @@ div {
     position: relative;
     padding: 0 20px 0 60px;
 }
+
+.camera-timeFilter {
+    font-size: 16px;
+    color: #ffffff;
+    background-color: #1a5589;
+    border-radius: 6px;
+    border: none;
+    padding: 4px 24px;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== Select 主体（关闭状态）===== */
+.camera-timeFilter {
+    background-color: #1a5589 !important;
+    color: #fff !important;
+    border-radius: 8px !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center;
+    box-shadow: none !important;
+    padding: 0 12px;
+}
+
+.camera-timeFilter .ant-select-content .ant-select-content-value {
+    color: #FFFFFF;
+}
+
+/* placeholder / value */
+.camera-timeFilter .ant-select-selection-item,
+.camera-timeFilter .ant-select-selection-placeholder {
+    color: #fff !important;
+    font-size: 16px;
+}
+
+/* selector 输入区域 */
+.camera-timeFilter .ant-select-selector {
+    background-color: transparent !important;
+    border: 1px solid #2d7dd2 !important;
+    border-radius: 8px !important;
+    height: 36px !important;
+    display: flex;
+    align-items: center;
+}
+
+/* hover */
+.camera-timeFilter:hover .ant-select-selector {
+    border-color: #52a9ff !important;
+    background-color: #206bb0 !important;
+}
+
+/* focus */
+.camera-timeFilter.ant-select-focused .ant-select-selector {
+    box-shadow: 0 0 0 2px rgba(64, 158, 255, .4) !important;
+    border-color: #4fa3ff !important;
+}
+
+/* 下拉箭头 */
+.camera-timeFilter .ant-select-suffix {
+    color: #fff !important;
+}
+
+/* ===== 下拉面板 ===== */
+.camera-timeFilter-dropdown {
+    background-color: #0f2f4a !important;
+    border-radius: 8px;
+    padding: 6px;
+}
+
+/* 每一项 */
+.camera-timeFilter-dropdown .ant-select-item {
+    color: #fff;
+    border-radius: 6px;
+}
+
+/* hover */
+.camera-timeFilter-dropdown .ant-select-item-option-active {
+    background-color: rgba(79, 163, 255, 0.35) !important;
+}
+
+/* selected */
+.camera-timeFilter-dropdown .ant-select-item-option-selected {
+    background: linear-gradient(135deg, #3a8dff, #55e0ff) !important;
+    color: #001529 !important;
+    font-weight: bold;
+}
+
+/* 禁用 */
+.camera-timeFilter-dropdown .ant-select-item-option-disabled {
+    color: rgba(255, 255, 255, 0.3) !important;
+}
+
 
 .option-timefilter {
     display: flex;
