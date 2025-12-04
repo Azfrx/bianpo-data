@@ -20,9 +20,9 @@ export function getFiberPoint(pointId: number) {
 }
 
 // 获取传感器列表 TODO: timeGap number
-export function getSensorList(projectId: number, startTime: string, endTime: string) {
+export function getSensorList(projectId: number, startTime: string, endTime: string, timeGap: number) {
     return request.get("/sensor/data", {
-        params: { projectId, startTime, endTime },
+        params: { projectId, timeGap, startTime, endTime },
     });
 }
 
@@ -30,5 +30,11 @@ export function getSensorList(projectId: number, startTime: string, endTime: str
 export function getFiberImportTime(projectId: number) {
     return request.get("/fiber/timedata", {
         params: { projectId },
+    });
+}
+
+export function getSensorPicture(shiftId: number) {
+    return request.get("/sensor/picture", {
+        params: { shiftId },
     });
 }

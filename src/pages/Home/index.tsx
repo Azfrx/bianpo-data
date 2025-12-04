@@ -8,7 +8,7 @@ import generateCameraData from "../../utils/generateCameraData";
 import { DatePicker, Select } from 'antd';
 import dayjs from 'dayjs';
 
-import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime } from "@/api/project";
+import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture } from "@/api/project";
 import "./index.css";
 
 import downArrow from "../../assets/arrow-down.svg";
@@ -33,6 +33,7 @@ interface CameraItem {
 }
 
 export interface Record {
+    shiftId: number;
     timestamp: string;
     "x-value": number;
     "y-value": number;
@@ -75,8 +76,8 @@ export default function Home() {
     const [fiberStartTime, setFiberStartTime] = useState<string>('2025-1-1');
     const [fiberEndTime, setFiberEndTime] = useState<string>('2025-1-1');
 
-    const [cameraStartDate, setCameraStartDate] = useState<string>('2025-11-16');
-    const [cameraEndDate, setCameraEndDate] = useState<string>('2025-11-18');
+    const [cameraStartDate, setCameraStartDate] = useState<string>('2025-12-03');
+    const [cameraEndDate, setCameraEndDate] = useState<string>('2025-12-04');
 
     // const [startYear, setStartYear] = useState(2025);
     // const [startMonth, setStartMonth] = useState(11);
@@ -104,8 +105,14 @@ export default function Home() {
     const [fullScreenRightBottom, setFullScreenRightBottom] = useState(false);
     const [fullScreenRightTop, setFullScreenRightTop] = useState(false);
 
-    const [curTimeFilter, setCurTimeFilter] = useState('1h');
-    const timeFilterOptions = ['1h', '6h', '12h', '24h'];
+    const [curTimeFilter, setCurTimeFilter] = useState(1);
+    const timeFilterOptions = [1, 6, 12, 24];
+
+    const [shiftImgMap, setShiftImgMap] = useState<{ [key: number]: string }>({});
+    const [showPicturePanel, setShowPicturePanel] = useState(false);
+    const [showedPictureUrl, setShowedPictureUrl] = useState<string>("");
+    const [showedPictureTime, setShowedPictureTime] = useState<string>("");
+    const [showedPictureSeriesName, setShowedPictureSeriesName] = useState<string>("");
 
     useEffect(() => {
         loadData();
@@ -180,9 +187,9 @@ export default function Home() {
     };
 
     // 获取传感器数据
-    const toGetSensorData = async (projectId: number | undefined, startDate: string, endDate: string) => {
+    const toGetSensorData = async (projectId: number | undefined, startDate: string, endDate: string, timeFilter: number = 1) => {
         if (!projectId) return;
-        const sensorDataRes = await getSensorList(projectId, startDate, endDate);
+        const sensorDataRes = await getSensorList(projectId, startDate, endDate, timeFilter);
         console.log("传感器数据：", sensorDataRes.data);
         const list: CameraItem[] = sensorDataRes.data;
         setCameraList(list);
@@ -199,11 +206,21 @@ export default function Home() {
 
             setXData(timestamps);
 
+            const shiftIdArrs: number[] = [];
+
             list.forEach((item: CameraItem) => {
                 // 取出两条线
-                const xLine = item.records.map((record: Record) => record["x-value"]).reverse();
+                const xLine = item.records.map(r => ({
+                    value: r["x-value"],
+                    shiftId: r.shiftId
+                })).reverse();
 
-                const yLine = item.records.map((record: Record) => record["y-value"]).reverse();
+                const yLine = item.records.map(r => ({
+                    value: r["y-value"],
+                    shiftId: r.shiftId
+                })).reverse();
+
+                item.records.forEach(r => shiftIdArrs.push(r.shiftId));
 
                 // 生成 legend
                 names.push(`${item.sensorName}-X`);
@@ -214,6 +231,8 @@ export default function Home() {
                 values.push(yLine);
             });
 
+            fetchPictures(shiftIdArrs);
+
             setCameraNames(names);
             setYData(values);
 
@@ -223,6 +242,17 @@ export default function Home() {
                 时间点: timestamps.length,
             });
         }
+    };
+
+    const fetchPictures = async (shiftIdArrs: number[]) => {
+        const promises = shiftIdArrs.map(id => getSensorPicture(id));
+        const results = await Promise.all(promises);
+        const newShiftImgMap: { [key: number]: string } = {};
+        shiftIdArrs.forEach((id, index) => {
+            newShiftImgMap[shiftIdArrs[index]] = `http://112.126.59.66:8080${results[index].data.pictureUrl}`;
+        })
+        console.log("newShiftImgMap:", newShiftImgMap);
+        setShiftImgMap(newShiftImgMap);
     };
 
     // 刷新光纤数据
@@ -240,7 +270,7 @@ export default function Home() {
         const [endYear, endMonth, endDay] = cameraEndDate.split('-');
         const sensorStart = formatDate(Number(startYear), Number(startMonth), Number(startDay), "start");
         const sensorEnd = formatDate(Number(endYear), Number(endMonth), Number(endDay), "end");
-        await toGetSensorData(projectId, sensorStart, sensorEnd);
+        await toGetSensorData(projectId, sensorStart, sensorEnd, curTimeFilter);
     };
 
     // 点击光纤点 获取点位数据
@@ -283,10 +313,14 @@ export default function Home() {
         setCameraEndDate(dateString as string);
     }
 
-    const timeFilterChange = (value: string) => {
+    const timeFilterChange = (value: number) => {
         console.log('选择时间间隔为:', value);
-        setCurTimeFilter(value.split(':')[0]);
+        setCurTimeFilter(value);
     }
+
+    useEffect(() => {
+        refreshSensorData();
+    }, [curTimeFilter]);
 
     const selectSetting = (value: StartCorner | Orientation) => {
         if (value === "horizontal" || value === "vertical") {
@@ -381,8 +415,16 @@ export default function Home() {
         }
     };
 
-    const fiberStretchStyle = fullScreenRightTop ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.5s ease" } : (fullScreenRightBottom ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.5s ease", border: 'none' } : {});
-    const cameraStretchStyle = fullScreenRightBottom ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.5s ease" } : (fullScreenRightTop ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.5s ease", border: 'none' } : {});
+    const openPicturePanel = (pictureUrl: string, seriesName: string, pictureTime: string) => {
+        console.log("Open picture panel for pictureUrl:", pictureUrl, "and pictureTime:", pictureTime);
+        setShowedPictureUrl(pictureUrl);
+        setShowedPictureTime(pictureTime);
+        setShowedPictureSeriesName(seriesName);
+        setShowPicturePanel(true);
+    };
+
+    const fiberStretchStyle = fullScreenRightTop ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" } : (fullScreenRightBottom ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: 'none' } : { transition: "all 0.8s ease" });
+    const cameraStretchStyle = fullScreenRightBottom ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" } : (fullScreenRightTop ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: 'none' } : { transition: "all 0.8s ease" });
 
     return (
         <div className="home">
@@ -634,9 +676,10 @@ export default function Home() {
                             </select> */}
                             <Select
                                 className="camera-timeFilter"
-                                value={`数据时间间隔:${curTimeFilter}`}
+                                value={curTimeFilter}
                                 onChange={timeFilterChange}
-                                options={timeFilterOptions.map(v => ({ value: v, label: v }))}
+                                optionLabelProp="selectedLabel"
+                                options={timeFilterOptions.map(v => ({ value: v, label: `${v}h`, selectedLabel: `数据时间间隔:${v}h` }))}
                                 dropdownClassName="camera-timeFilter-dropdown"
                             />
                             <div className="option-name">靶点数据</div>
@@ -688,11 +731,18 @@ export default function Home() {
                             </div>
                         </div>
                         <div className="camera-chart" >
-                            <LineChart title="" xName="时间" yName={cameraNames} xData={xData} yData={yData} showPic={true} />
+                            <LineChart title="" xName="时间" yName={cameraNames} xData={xData} yData={yData} showPic={true} shiftImgMap={shiftImgMap} openPicturePanel={(pictureUrl: string, seriesName: string, pictureTime: string) => { openPicturePanel(pictureUrl, seriesName, pictureTime) }} />
                         </div>
                     </div>
                 </div>
             </div>
+            {showPicturePanel && (
+                <div className="cameraPic-Container">
+                    <div className="cameraPic-close" onClick={() => setShowPicturePanel(false)}>x</div>
+                    <div className="cameraPic-Title">靶点 {showedPictureSeriesName} 图片拍摄时间: {showedPictureTime}</div>
+                    <img src={showedPictureUrl} className="cameraPic-Image" />
+                </div>
+            )}
         </div>
     );
 }
