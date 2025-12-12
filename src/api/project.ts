@@ -38,3 +38,16 @@ export function getSensorPicture(shiftId: number) {
         params: { shiftId },
     });
 }
+
+// 上传光纤 Excel 文件
+export function uploadFiberExcel(projectId: number, file: File) {
+    const formData = new FormData();
+    formData.append("projectId", projectId.toString());
+    formData.append("file", file);
+
+    return request.post("/import/fiber", formData, {
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+    });
+}
