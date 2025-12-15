@@ -4,8 +4,9 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 
 function App() {
+  const basename = import.meta.env.MODE === 'production' ? '/bianpo' : '/';
   return (
-    <BrowserRouter basename="/bianpo">
+    <BrowserRouter basename={basename}>
       {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<Home />} />
