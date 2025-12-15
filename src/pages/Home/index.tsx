@@ -5,7 +5,7 @@ import NewHeatmapGrid from "../../components/newHeatmapGrid";
 import TimeSelectButton from "../../components/TimeSelectButton";
 import LineChart from "../../components/LineChart";
 import generateCameraData from "../../utils/generateCameraData";
-import { DatePicker, Select } from 'antd';
+import { DatePicker, Select, Spin } from 'antd';
 import dayjs from 'dayjs';
 
 import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture } from "@/api/project";
@@ -114,6 +114,9 @@ export default function Home() {
     const [showedPictureTime, setShowedPictureTime] = useState<string>("");
     const [showedPictureSeriesName, setShowedPictureSeriesName] = useState<string>("");
 
+    const [loading, setLoading] = useState(false)
+    const [uploading, setUploading] = useState(false)
+
     useEffect(() => {
         loadData();
     }, []);
@@ -182,13 +185,16 @@ export default function Home() {
     // 获取光纤数据
     const toGetFiberData = async (projectId: number | undefined, startDate: string, endDate: string) => {
         if (!projectId) return;
+        setUploading(true);
         const fiberDataRes = await getFiberData(projectId, startDate, endDate);
         setGridData(fiberDataRes.data.fiberPoints);
+        setUploading(false);
     };
 
     // 获取传感器数据
     const toGetSensorData = async (projectId: number | undefined, startDate: string, endDate: string, timeFilter: number = 1) => {
         if (!projectId) return;
+        setLoading(true);
         const sensorDataRes = await getSensorList(projectId, startDate, endDate, timeFilter);
         console.log("传感器数据：", sensorDataRes.data);
         const list: CameraItem[] = sensorDataRes.data;
@@ -242,6 +248,7 @@ export default function Home() {
                 时间点: timestamps.length,
             });
         }
+        setLoading(false);
     };
 
     const fetchPictures = async (shiftIdArrs: number[]) => {
@@ -455,6 +462,13 @@ export default function Home() {
                 </div>
                 <div className="home-content-right" style={fullScreenRightBottom || fullScreenRightBottom ? { gap: 0 } : {}}>
                     <div className="right-gx" style={fiberStretchStyle}>
+                        {/* 加载蒙层 */}
+                        {uploading && (
+                            <div className="loading-mask">
+                                <Spin size="large" />
+                                <div className="loading-text">数据加载中，请稍候…</div>
+                            </div>
+                        )}
                         {/* <div className={`closeFiber`} onClick={fullscreenFiber}>
                             ⤢
                         </div> */}
@@ -665,6 +679,13 @@ export default function Home() {
                         </div>
                     </div>
                     <div className="right-camera" style={cameraStretchStyle}>
+                        {/* 加载蒙层 */}
+                        {loading && (
+                            <div className="loading-mask">
+                                <Spin size="large" />
+                                <div className="loading-text">数据加载中，请稍候…</div>
+                            </div>
+                        )}
                         <div className={`fullscreenIcon ${fullScreenRightBottom ? "fullscreenIcon-active" : ""}`} onClick={fullScreenCamera}>{fullScreenRightBottom ? (<img src={colseArrow} width="24" />) : "⤢"}</div>
                         <div className="camera-options">
                             {/* <select value={curTimeFilter} onChange={timeFilterChange} className="camera-timeFilter">
