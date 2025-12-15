@@ -8,12 +8,9 @@ import generateCameraData from "../../utils/generateCameraData";
 import { DatePicker, Select, Spin } from 'antd';
 import dayjs from 'dayjs';
 
-import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture } from "@/api/project";
+import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture, uploadFiberExcel } from "@/api/project";
 import "./index.css";
 
-import downArrow from "../../assets/arrow-down.svg";
-import downArrow2 from "../../assets/arrow-down2.svg";
-import upArrow from "../../assets/arrow-up.svg";
 import colseArrow from "../../assets/arrow-close.svg";
 
 type StartCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
@@ -46,17 +43,6 @@ interface RawPoint {
     column: number;
 }
 
-const fakeList = [
-    { id: 1, name: "项目01", active: true },
-    { id: 2, name: "项目02", active: false },
-];
-
-const fakeCameraList = [
-    { id: 1, name: "摄像头01", active: true },
-    { id: 2, name: "摄像头02", active: false },
-    { id: 3, name: "摄像头03", active: false },
-];
-
 export default function Home() {
     const [settingOpening, setSettingOpening] = useState(false);
     const [showLeftTimeSetting, setShowLeftTimeSetting] = useState(false);
@@ -65,26 +51,14 @@ export default function Home() {
     const [showGridLine, setShowGridLine] = useState(true);
     const [direction, setDirection] = useState<Orientation>("horizontal");
     const [start, setStart] = useState<StartCorner>("top-left");
-    // const [leftYear, setLeftYear] = useState(2025);
-    // const [leftMonth, setLeftMonth] = useState(9);
-    // const [leftDay, setLeftDay] = useState(17);
-    // const [rightYear, setRightYear] = useState(2025);
-    // const [rightMonth, setRightMonth] = useState(11);
-    // const [rightDay, setRightDay] = useState(17);
 
     const [fiberImportTime, setFiberImportTime] = useState<{ timeString: string }[]>([]);
-    const [fiberStartTime, setFiberStartTime] = useState<string>('2025-1-1');
-    const [fiberEndTime, setFiberEndTime] = useState<string>('2025-1-1');
+    const [fiberStartTime, setFiberStartTime] = useState<string>("2025-1-1");
+    const [fiberEndTime, setFiberEndTime] = useState<string>("2025-1-1");
 
-    const [cameraStartDate, setCameraStartDate] = useState<string>('2025-12-03');
-    const [cameraEndDate, setCameraEndDate] = useState<string>('2025-12-04');
+    const [cameraStartDate, setCameraStartDate] = useState<string>("2025-12-03");
+    const [cameraEndDate, setCameraEndDate] = useState<string>("2025-12-04");
 
-    // const [startYear, setStartYear] = useState(2025);
-    // const [startMonth, setStartMonth] = useState(11);
-    // const [startDay, setStartDay] = useState(16);
-    // const [endYear, setEndYear] = useState(2025);
-    // const [endMonth, setEndMonth] = useState(11);
-    // const [endDay, setEndDay] = useState(18);
     const [timeFilter, setTimeFilter] = useState("all");
     const [showStartTimeSetting, setShowStartTimeSetting] = useState(false);
     const [showEndTimeSetting, setShowEndTimeSetting] = useState(false);
@@ -141,8 +115,8 @@ export default function Home() {
                 const fiberStart = formatDate(Number(fiberStartTime.split("-")[0]), Number(fiberStartTime.split("-")[1]), Number(fiberStartTime.split("-")[2]), "start");
                 const fiberEnd = formatDate(Number(fiberEndTime.split("-")[0]), Number(fiberEndTime.split("-")[1]), Number(fiberEndTime.split("-")[2]), "end");
 
-                const [startYear, startMonth, startDay] = cameraStartDate.split('-');
-                const [endYear, endMonth, endDay] = cameraEndDate.split('-');
+                const [startYear, startMonth, startDay] = cameraStartDate.split("-");
+                const [endYear, endMonth, endDay] = cameraEndDate.split("-");
                 const sensorStart = formatDate(Number(startYear), Number(startMonth), Number(startDay), "start");
                 const sensorEnd = formatDate(Number(endYear), Number(endMonth), Number(endDay), "end");
 
@@ -216,17 +190,21 @@ export default function Home() {
 
             list.forEach((item: CameraItem) => {
                 // 取出两条线
-                const xLine = item.records.map(r => ({
-                    value: r["x-value"],
-                    shiftId: r.shiftId
-                })).reverse();
+                const xLine = item.records
+                    .map((r) => ({
+                        value: r["x-value"],
+                        shiftId: r.shiftId,
+                    }))
+                    .reverse();
 
-                const yLine = item.records.map(r => ({
-                    value: r["y-value"],
-                    shiftId: r.shiftId
-                })).reverse();
+                const yLine = item.records
+                    .map((r) => ({
+                        value: r["y-value"],
+                        shiftId: r.shiftId,
+                    }))
+                    .reverse();
 
-                item.records.forEach(r => shiftIdArrs.push(r.shiftId));
+                item.records.forEach((r) => shiftIdArrs.push(r.shiftId));
 
                 // 生成 legend
                 names.push(`${item.sensorName}-X`);
@@ -252,13 +230,13 @@ export default function Home() {
     };
 
     const fetchPictures = async (shiftIdArrs: number[]) => {
-        const promises = shiftIdArrs.map(id => getSensorPicture(id));
+        const promises = shiftIdArrs.map((id) => getSensorPicture(id));
         const results = await Promise.all(promises);
         const newShiftImgMap: { [key: number]: string } = {};
         shiftIdArrs.forEach((id, index) => {
             newShiftImgMap[shiftIdArrs[index]] = `http://112.126.59.66:8080${results[index].data.pictureUrl}`;
-        })
-        console.log("newShiftImgMap:", newShiftImgMap);
+        });
+        // console.log("newShiftImgMap:", newShiftImgMap);
         setShiftImgMap(newShiftImgMap);
     };
 
@@ -273,8 +251,8 @@ export default function Home() {
     // 刷新传感器数据
     const refreshSensorData = async () => {
         const projectId = getActiveProjectId();
-        const [startYear, startMonth, startDay] = cameraStartDate.split('-');
-        const [endYear, endMonth, endDay] = cameraEndDate.split('-');
+        const [startYear, startMonth, startDay] = cameraStartDate.split("-");
+        const [endYear, endMonth, endDay] = cameraEndDate.split("-");
         const sensorStart = formatDate(Number(startYear), Number(startMonth), Number(startDay), "start");
         const sensorEnd = formatDate(Number(endYear), Number(endMonth), Number(endDay), "end");
         await toGetSensorData(projectId, sensorStart, sensorEnd, curTimeFilter);
@@ -302,28 +280,28 @@ export default function Home() {
     };
 
     const selectFiberStartTime = (timeString: string) => {
-        setFiberStartTime(timeString.split(' ')[0]);
+        setFiberStartTime(timeString.split(" ")[0]);
         setShowLeftTimeSetting(false);
     };
 
     const selectFiberEndTime = (timeString: string) => {
-        setFiberEndTime(timeString.split(' ')[0]);
+        setFiberEndTime(timeString.split(" ")[0]);
         setShowRightTimeSetting(false);
     };
 
     const onChangeCameraStartDate = (date: any, dateString: string | string[]) => {
-        console.log('dateString', dateString);
+        // console.log("dateString", dateString);
         setCameraStartDate(dateString as string);
-    }
+    };
     const onChangeCameraEndDate = (date: any, dateString: string | string[]) => {
-        console.log('dateString', dateString);
+        // console.log("dateString", dateString);
         setCameraEndDate(dateString as string);
-    }
+    };
 
     const timeFilterChange = (value: number) => {
-        console.log('选择时间间隔为:', value);
+        console.log("选择时间间隔为:", value);
         setCurTimeFilter(value);
-    }
+    };
 
     useEffect(() => {
         refreshSensorData();
@@ -430,8 +408,37 @@ export default function Home() {
         setShowPicturePanel(true);
     };
 
-    const fiberStretchStyle = fullScreenRightTop ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" } : (fullScreenRightBottom ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: 'none' } : { transition: "all 0.8s ease" });
-    const cameraStretchStyle = fullScreenRightBottom ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" } : (fullScreenRightTop ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: 'none' } : { transition: "all 0.8s ease" });
+    const fileRef = useRef<HTMLInputElement | null>(null);
+
+    const onClickDiv = () => {
+        fileRef.current?.click();
+    };
+
+    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        const projectId = getActiveProjectId();
+        if (!projectId) {
+            console.error("没有选中的项目，请先选择一个项目");
+            return;
+        }
+        if (!file) return;
+
+        console.log("选择的文件：", file);
+
+        // 调用上传接口
+        uploadFiberExcel(projectId, file);
+    };
+
+    const fiberStretchStyle = fullScreenRightTop
+        ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
+        : fullScreenRightBottom
+        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+        : { transition: "all 0.8s ease" };
+    const cameraStretchStyle = fullScreenRightBottom
+        ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
+        : fullScreenRightTop
+        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+        : { transition: "all 0.8s ease" };
 
     return (
         <div className="home">
@@ -440,7 +447,7 @@ export default function Home() {
                 <div className="home-content-left" style={openLeft ? { width: "250px" } : { width: "0px" }}>
                     <div
                         className={`left-stretch ${openLeft ? "left-stretch-open" : "left-stretch-close"}`}
-                        style={openLeft ? {} : { transform: "translateX(0%) translateY(-100%)", }}
+                        style={openLeft ? {} : { transform: "translateX(0%) translateY(-100%)" }}
                         onClick={stretchLeft}
                     >
                         {openLeft ? "<" : "展开项目列表>"}
@@ -474,11 +481,14 @@ export default function Home() {
                         </div> */}
                         {/* <img src={upArrow} width="20" className={`closeFiber`} onClick={closeFiber} /> */}
                         <div className={`fullscreenIcon ${fullScreenRightTop ? "fullscreenIcon-active" : ""}`} onClick={fullscreenFiber}>
-                            {fullScreenRightTop ? (<img src={colseArrow} width="24" />) : "⤢"}
+                            {fullScreenRightTop ? <img src={colseArrow} width="24" /> : "⤢"}
                         </div>
                         <div className="gx-options">
                             <div className="option-left">
-                                <div className="option-import">导入新数据</div>
+                                <div className="option-import" onClick={onClickDiv}>
+                                    导入新数据
+                                </div>
+                                <input ref={fileRef} type="file" accept=".xlsx,.xls" style={{ display: "none" }} onChange={onFileChange} />
                                 <div className="gx-tips">
                                     <div className="tip-text">
                                         <span className="tip-text-blue">正常</span>
@@ -630,7 +640,14 @@ export default function Home() {
                                     {timeToCN(fiberStartTime)}
                                     <div className={`projectImportTime ${showLeftTimeSetting ? "open" : ""}`}>
                                         {fiberImportTime.map((item, index) => (
-                                            <div className={`projectImportTime-item ${fiberStartTime === item.timeString.split(' ')[0] ? "projectImportTime-active" : ""}`} onClick={() => { selectFiberStartTime(item.timeString) }}>{item.timeString}</div>
+                                            <div
+                                                className={`projectImportTime-item ${fiberStartTime === item.timeString.split(" ")[0] ? "projectImportTime-active" : ""}`}
+                                                onClick={() => {
+                                                    selectFiberStartTime(item.timeString);
+                                                }}
+                                            >
+                                                {item.timeString}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -644,7 +661,14 @@ export default function Home() {
                                     {timeToCN(fiberEndTime)}
                                     <div className={`projectImportTime ${showRightTimeSetting ? "open" : ""}`}>
                                         {fiberImportTime.map((item, index) => (
-                                            <div className={`projectImportTime-item ${fiberEndTime === item.timeString.split(' ')[0] ? "projectImportTime-active" : ""}`} onClick={() => { selectFiberEndTime(item.timeString) }}>{item.timeString}</div>
+                                            <div
+                                                className={`projectImportTime-item ${fiberEndTime === item.timeString.split(" ")[0] ? "projectImportTime-active" : ""}`}
+                                                onClick={() => {
+                                                    selectFiberEndTime(item.timeString);
+                                                }}
+                                            >
+                                                {item.timeString}
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
@@ -700,7 +724,7 @@ export default function Home() {
                                 value={curTimeFilter}
                                 onChange={timeFilterChange}
                                 optionLabelProp="selectedLabel"
-                                options={timeFilterOptions.map(v => ({ value: v, label: `${v}h`, selectedLabel: `数据时间间隔:${v}h` }))}
+                                options={timeFilterOptions.map((v) => ({ value: v, label: `${v}h`, selectedLabel: `数据时间间隔:${v}h` }))}
                                 dropdownClassName="camera-timeFilter-dropdown"
                             />
                             <div className="option-name">靶点数据</div>
@@ -751,16 +775,31 @@ export default function Home() {
                                 </div>
                             </div>
                         </div>
-                        <div className="camera-chart" >
-                            <LineChart title="" xName="时间" yName={cameraNames} xData={xData} yData={yData} showPic={true} shiftImgMap={shiftImgMap} openPicturePanel={(pictureUrl: string, seriesName: string, pictureTime: string) => { openPicturePanel(pictureUrl, seriesName, pictureTime) }} />
+                        <div className="camera-chart">
+                            <LineChart
+                                title=""
+                                xName="时间"
+                                yName={cameraNames}
+                                xData={xData}
+                                yData={yData}
+                                showPic={true}
+                                shiftImgMap={shiftImgMap}
+                                openPicturePanel={(pictureUrl: string, seriesName: string, pictureTime: string) => {
+                                    openPicturePanel(pictureUrl, seriesName, pictureTime);
+                                }}
+                            />
                         </div>
                     </div>
                 </div>
             </div>
             {showPicturePanel && (
                 <div className="cameraPic-Container">
-                    <div className="cameraPic-close" onClick={() => setShowPicturePanel(false)}>x</div>
-                    <div className="cameraPic-Title">靶点 {showedPictureSeriesName} 图片拍摄时间: {showedPictureTime}</div>
+                    <div className="cameraPic-close" onClick={() => setShowPicturePanel(false)}>
+                        x
+                    </div>
+                    <div className="cameraPic-Title">
+                        靶点 {showedPictureSeriesName} 图片获取时间: {showedPictureTime}
+                    </div>
                     <img src={showedPictureUrl} className="cameraPic-Image" />
                 </div>
             )}

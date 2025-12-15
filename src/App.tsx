@@ -5,7 +5,7 @@ import About from "./pages/About";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/bianpo">
       {/* <Navbar /> */}
       <Routes>
         <Route path="/" element={<Home />} />
