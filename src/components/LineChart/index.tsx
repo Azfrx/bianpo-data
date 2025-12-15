@@ -200,7 +200,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
                     lineStyle: { color: "#fff" },
                 },
                 nameLocation: "end",
-                nameGap: 5, // 调整名称与坐标轴的距离，数值越小越靠上
+                nameGap: 20, // 调整名称与坐标轴的距离，数值越小越靠上
                 nameTextStyle: { color: "#fff" },
             },
             yAxis,
