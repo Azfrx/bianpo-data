@@ -20,6 +20,13 @@
     left: 0px;
 }
 
+.selected{
+    box-shadow: 0 0 12px 2px rgba(0, 255, 200, 0.6);
+    border: 2px solid #00ffc8;
+    transform: scale(1.2);
+    z-index: 10;
+}
+
 .heat-tooltip {
     position: fixed;
     background: rgba(0, 0, 0, 0.8);

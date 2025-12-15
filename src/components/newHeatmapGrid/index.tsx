@@ -12,7 +12,7 @@ interface RawPoint {
 interface HeatmapGridProps {
     data: RawPoint[]; // ← 改为从外部传入真实数据
     clickPoint: (point: string) => void;
-
+    pointId: string;
     showSquareName?: boolean;
     showGridLine?: boolean;
     maxDiff?: number;
@@ -23,6 +23,7 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
     showSquareName = false,
     showGridLine = false,
     maxDiff = 15,
+    pointId,
     clickPoint,
 }) => {
     /** 计算真实行列数 */
@@ -109,8 +110,9 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                         </div>
                         {row.map((cell, colIndex) =>
                             cell ? (
-                                <div className="grid-cell" key={cell.pointId} onClick={() => clickPoint(cell.pointId)}>
+                                <div className={"grid-cell"} key={cell.pointId} onClick={() => clickPoint(cell.pointId)}>
                                     <HeatSquare
+                                        selectedPointId={pointId}
                                         name={cell.pointId}
                                         value={cell.value}
                                         maxDiff={maxDiff}

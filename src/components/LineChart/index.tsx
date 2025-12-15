@@ -14,6 +14,8 @@ interface LineChartData {
 
 const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, openPicturePanel }: LineChartData) => {
     const chartRef = useRef(null); // 引用 DOM 节点
+    const chartInstanceRef = useRef<echarts.EChartsType | null>(null)
+    const legendSelectedRef = useRef<Record<string, boolean>>({})
 
     // 判断是否存在以 -Y 结尾的线（需要右轴）
     const hasYLine = yName.some((name) => name.endsWith("-Y"));
@@ -76,8 +78,34 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
     });
 
     useEffect(() => {
+        if (!chartRef.current) return
+
+        const chart =
+            echarts.getInstanceByDom(chartRef.current) ||
+            echarts.init(chartRef.current)
+
+        chartInstanceRef.current = chart
+
+        chart.on('legendselectchanged', e => {
+            legendSelectedRef.current = e.selected
+        })
+
+        const resizeObserver = new ResizeObserver(() => chart.resize())
+        resizeObserver.observe(chartRef.current)
+
+        return () => {
+            resizeObserver.disconnect()
+            chart.dispose()
+        }
+    }, [])
+
+
+    useEffect(() => {
         // 初始化 echarts 实例
-        const chart = echarts.init(chartRef.current);
+        // const chart = echarts.init(chartRef.current);
+        // const chart = echarts.getInstanceByDom(chartRef.current) || echarts.init(chartRef.current)
+        const chart = chartInstanceRef.current
+        if (!chart) return
 
         // 配置项（图表的样式和数据）
         const option = {
@@ -154,6 +182,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
                 textStyle: {
                     color: "#fff", // 图例文字颜色
                 },
+                selected: legendSelectedRef.current // ⭐ 核心点：使用 ref 保存选中状态
             },
             xAxis: {
                 name: xName,
@@ -179,7 +208,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
         };
 
         // 设置配置项
-        chart.setOption(option);
+        chart.setOption(option, true);
 
         // 先解绑旧的 click，防止重复绑定
         chart.off("click");
@@ -199,7 +228,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
         // 组件卸载时清理
         return () => {
             resizeObserver.disconnect();
-            chart.dispose();
+            // chart.dispose();
         };
     }, [title, xName, yName, xData, yData, showPic, shiftImgMap]);
 

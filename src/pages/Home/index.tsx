@@ -684,6 +684,7 @@ export default function Home() {
                         </div>
                         <div className="gx-grid">
                             <NewHeatmapGrid
+                                pointId={pointId}
                                 data={gridData}
                                 clickPoint={(pointId) => {
                                     handleClickPoint(pointId);

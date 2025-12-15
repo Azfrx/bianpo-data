@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./index.css";
 
 interface HeatSquareProps {
+    selectedPointId?: string;
     name: string;
     showName?: boolean;
     value: number; // 唯一差值
@@ -9,6 +10,7 @@ interface HeatSquareProps {
 }
 
 const HeatSquare = ({
+    selectedPointId,
     name,
     showName = false,
     value,
@@ -59,7 +61,7 @@ const HeatSquare = ({
     return (
         <>
             <div
-                className="heat-square"
+                className={"heat-square " + (selectedPointId === name ? "selected" : "")}
                 style={{ backgroundColor: color }}
                 onMouseEnter={() => setTooltip({ ...tooltip, visible: true })}
                 onMouseLeave={() => setTooltip({ ...tooltip, visible: false })}
