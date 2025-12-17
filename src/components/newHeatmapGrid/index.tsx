@@ -13,31 +13,24 @@ interface HeatmapGridProps {
     data: RawPoint[]; // ← 改为从外部传入真实数据
     clickPoint: (point: string) => void;
     pointId: string;
+    cameraInGrid: { sensorId: number; sensorName: string; pointId: string; selected: boolean }[];
     showSquareName?: boolean;
     showGridLine?: boolean;
     maxDiff?: number;
 }
 
-const HeatmapGrid: React.FC<HeatmapGridProps> = ({
-    data,
-    showSquareName = false,
-    showGridLine = false,
-    maxDiff = 15,
-    pointId,
-    clickPoint,
-}) => {
+const HeatmapGrid: React.FC<HeatmapGridProps> = ({ data, showSquareName = false, showGridLine = false, maxDiff = 15, pointId, cameraInGrid, clickPoint }) => {
+    const lightingPoints = useMemo(() => {
+        return cameraInGrid.filter((item) => item.selected).map((item) => item.pointId);
+    }, [cameraInGrid]);
+
     /** 计算真实行列数 */
     const numRows = useMemo(() => Math.max(...data.map((d) => d.row)), [data]);
-    const numCols = useMemo(
-        () => Math.max(...data.map((d) => d.column)),
-        [data]
-    );
+    const numCols = useMemo(() => Math.max(...data.map((d) => d.column)), [data]);
 
     /** 构建二维数组 grid[row][column] */
     const grid = useMemo(() => {
-        const g: (RawPoint | null)[][] = Array.from({ length: numRows }, () =>
-            Array.from({ length: numCols }, () => null)
-        );
+        const g: (RawPoint | null)[][] = Array.from({ length: numRows }, () => Array.from({ length: numCols }, () => null));
 
         data.forEach((item) => {
             const r = item.row - 1; // row 从 1 开始 → 转为 0-based
@@ -56,9 +49,7 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
         const container = containerRef.current;
         if (!container) return;
 
-        const nodes = Array.from(
-            container.querySelectorAll<HTMLElement>(".grid-cell")
-        );
+        const nodes = Array.from(container.querySelectorAll<HTMLElement>(".grid-cell"));
         const rectContainer = container.getBoundingClientRect();
         const pts: string[] = [];
 
@@ -86,12 +77,7 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
                         pointerEvents: "none",
                     }}
                 >
-                    <polyline
-                        points={polyPoints}
-                        stroke="rgba(0, 255, 115, 0.4)"
-                        strokeWidth="2"
-                        fill="none"
-                    />
+                    <polyline points={polyPoints} stroke="rgba(0, 255, 115, 0.4)" strokeWidth="2" fill="none" />
                 </svg>
             )}
 
@@ -105,19 +91,11 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({
             >
                 {grid.map((row, rowIndex) => (
                     <React.Fragment key={`row-${rowIndex}`}>
-                        <div className="row-label">
-                            {rowIndex + 1}
-                        </div>
+                        <div className="row-label">{rowIndex + 1}</div>
                         {row.map((cell, colIndex) =>
                             cell ? (
                                 <div className={"grid-cell"} key={cell.pointId} onClick={() => clickPoint(cell.pointId)}>
-                                    <HeatSquare
-                                        selectedPointId={pointId}
-                                        name={cell.pointId}
-                                        value={cell.value}
-                                        maxDiff={maxDiff}
-                                        showName={showSquareName}
-                                    />
+                                    <HeatSquare selectedPointId={pointId} name={cell.pointId} value={cell.value} maxDiff={maxDiff} showName={showSquareName} lighting={lightingPoints.includes(cell.pointId)} />
                                 </div>
                             ) : (
                                 <div className="grid-cell" key={`empty-${rowIndex}-${colIndex}`}>

@@ -91,6 +91,14 @@ export default function Home() {
     const [loading, setLoading] = useState(false)
     const [uploading, setUploading] = useState(false)
 
+    const [cameraInGrid, setCameraInGrid] = useState([
+        { sensorId: 1,sensorName: "Point_1", pointId: "12", selected: true},
+        { sensorId: 2, sensorName: "Point_2", pointId: "55", selected: true},
+        { sensorId: 3, sensorName: "Point_3", pointId: "95", selected: true},
+        { sensorId: 4, sensorName: "Point_4", pointId: "164", selected: true},
+        { sensorId: 5, sensorName: "Point_5", pointId: "233", selected: true},
+    ])
+
     useEffect(() => {
         loadData();
     }, []);
@@ -686,6 +694,7 @@ export default function Home() {
                             <NewHeatmapGrid
                                 pointId={pointId}
                                 data={gridData}
+                                cameraInGrid={cameraInGrid}
                                 clickPoint={(pointId) => {
                                     handleClickPoint(pointId);
                                 }}

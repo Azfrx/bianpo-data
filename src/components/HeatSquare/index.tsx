@@ -4,6 +4,7 @@ import "./index.css";
 interface HeatSquareProps {
     selectedPointId?: string;
     name: string;
+    lighting: boolean;
     showName?: boolean;
     value: number; // 唯一差值
     maxDiff?: number; // 最大值用于映射
@@ -13,6 +14,7 @@ const HeatSquare = ({
     selectedPointId,
     name,
     showName = false,
+    lighting,
     value,
     maxDiff = 100,
 }: HeatSquareProps) => {
@@ -61,7 +63,7 @@ const HeatSquare = ({
     return (
         <>
             <div
-                className={"heat-square " + (selectedPointId === name ? "selected" : "")}
+                className={"heat-square " + (selectedPointId === name ? "selected" : "") + (lighting ? " lighting" : "")}
                 style={{ backgroundColor: color }}
                 onMouseEnter={() => setTooltip({ ...tooltip, visible: true })}
                 onMouseLeave={() => setTooltip({ ...tooltip, visible: false })}

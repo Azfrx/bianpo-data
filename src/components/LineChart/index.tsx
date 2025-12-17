@@ -12,10 +12,20 @@ interface LineChartData {
     openPicturePanel?: (pictureUrl: string, seriesName: string, pictureTime: string) => void;
 }
 
+function getVisibleSensors(selected: Record<string, boolean>): Set<string> {
+    const visibleLegends = Object.entries(selected)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([name]) => name);
+
+    return new Set(
+        visibleLegends.map((name) => name.split("-")[0]) // Point_1
+    );
+}
+
 const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, openPicturePanel }: LineChartData) => {
     const chartRef = useRef(null); // 引用 DOM 节点
-    const chartInstanceRef = useRef<echarts.EChartsType | null>(null)
-    const legendSelectedRef = useRef<Record<string, boolean>>({})
+    const chartInstanceRef = useRef<echarts.EChartsType | null>(null);
+    const legendSelectedRef = useRef<Record<string, boolean>>({});
 
     // 判断是否存在以 -Y 结尾的线（需要右轴）
     const hasYLine = yName.some((name) => name.endsWith("-Y"));
@@ -50,8 +60,12 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
         yAxis[0].max = 1600;
         // yAxis[0].name = '0.1mm 位移';
     } else {
-        yAxis[0].name = '0.01mm 位移';
-        yAxis[1].name = '0.01mm 位移';
+        yAxis[0].min = -150;
+        yAxis[0].max = 150;
+        yAxis[1].min = -150;
+        yAxis[1].max = 150;
+        yAxis[0].name = "0.01mm 位移";
+        yAxis[1].name = "0.01mm 位移";
     }
 
     // 构造 series，注意 yAxisIndex：以 -Y 结尾的走右轴（1），否则走左轴（0）
@@ -78,34 +92,84 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
     });
 
     useEffect(() => {
-        if (!chartRef.current) return
+        if (!chartRef.current) return;
 
-        const chart =
-            echarts.getInstanceByDom(chartRef.current) ||
-            echarts.init(chartRef.current)
+        const chart = echarts.getInstanceByDom(chartRef.current) || echarts.init(chartRef.current);
 
-        chartInstanceRef.current = chart
+        chartInstanceRef.current = chart;
 
-        chart.on('legendselectchanged', e => {
-            legendSelectedRef.current = e.selected
-        })
+        chart.on("legendselectchanged", (e) => {
+            legendSelectedRef.current = e.selected;
 
-        const resizeObserver = new ResizeObserver(() => chart.resize())
-        resizeObserver.observe(chartRef.current)
+            const sensors = getVisibleSensors(e.selected);
+
+            if (sensors.size === 1) {
+                const currentPoint = [...sensors][0];
+                addLimitLine(currentPoint, chart);
+            } else {
+                removeLimitLine(chart);
+            }
+        });
+
+        const resizeObserver = new ResizeObserver(() => chart.resize());
+        resizeObserver.observe(chartRef.current);
 
         return () => {
-            resizeObserver.disconnect()
-            chart.dispose()
-        }
-    }, [])
+            resizeObserver.disconnect();
+            chart.dispose();
+        };
+    }, []);
 
+    function addLimitLine(pointId: string, chart: echarts.EChartsType) {
+        const upperLimit = 110;
+        const lowerLimit = -110;
+
+        const currentOption = chart.getOption();
+
+        chart.setOption({
+            series: currentOption.series.map((series) => {
+                if (series.name.startsWith(pointId)) {
+                    return {
+                        ...series,
+                        markLine: {
+                            silent: true,
+                            symbol: "none",
+                            lineStyle: {
+                                color: "red",
+                                width: 2,
+                            },
+                            label: {
+                                color: "red",
+                                position: "end",
+                            },
+                            data: [
+                                { yAxis: upperLimit, label: { formatter: "上限" } },
+                                { yAxis: lowerLimit, label: { formatter: "下限" } },
+                            ],
+                        },
+                    };
+                }
+                return series;
+            }),
+        });
+    }
+
+    function removeLimitLine(chart: echarts.EChartsType) {
+        const currentOption = chart.getOption();
+        chart.setOption({
+            series: currentOption.series.map((series) => ({
+                ...series,
+                markLine: undefined,
+            })),
+        });
+    }
 
     useEffect(() => {
         // 初始化 echarts 实例
         // const chart = echarts.init(chartRef.current);
         // const chart = echarts.getInstanceByDom(chartRef.current) || echarts.init(chartRef.current)
-        const chart = chartInstanceRef.current
-        if (!chart) return
+        const chart = chartInstanceRef.current;
+        if (!chart) return;
 
         // 配置项（图表的样式和数据）
         const option = {
@@ -181,20 +245,21 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
                 right: "10%",
                 textStyle: {
                     color: "#fff", // 图例文字颜色
+                    fontSize: hasYLine ? 14 : 18,
                 },
-                selected: legendSelectedRef.current // ⭐ 核心点：使用 ref 保存选中状态
+                selected: legendSelectedRef.current, // ⭐ 核心点：使用 ref 保存选中状态
             },
             xAxis: {
                 name: xName,
                 type: "category",
-                data: xData.map(x => `${x.split('-')[1]}-${x.split('-')[2]}`), // 不显示年份，节省空间
+                data: xData.map((x) => `${x.split("-")[1]}-${x.split("-")[2]}`), // 不显示年份，节省空间
                 axisLine: {
                     lineStyle: { color: "#fff" }, // 坐标轴线颜色
                 },
                 axisLabel: {
                     color: "#fff", // x轴刻度文字颜色
                     interval: hasYLine ? 0 : "auto", // 显示所有标签
-                    rotate: xData.length > 8 ? -15 : 0,  // x轴数据过多时斜着显示
+                    rotate: xData.length > 8 ? -15 : 0, // x轴数据过多时斜着显示
                 },
                 axisTick: {
                     lineStyle: { color: "#fff" },
@@ -219,7 +284,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
             const pictureTime = params.name;
             const seriesName = params.seriesName;
             openPicturePanel && openPicturePanel(pictureUrl, seriesName, pictureTime);
-        })
+        });
 
         // ✅ 窗口大小变化时自适应
         const resizeObserver = new ResizeObserver(() => chart.resize());
