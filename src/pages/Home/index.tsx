@@ -1,11 +1,12 @@
 import React, { useMemo, useRef, useEffect, useState } from "react";
+import { createPortal } from 'react-dom';
 // import HeatSquare from "../../components/HeatSquare";
 import HeatmapGrid from "../../components/HeatmapGrid";
 import NewHeatmapGrid from "../../components/newHeatmapGrid";
 import TimeSelectButton from "../../components/TimeSelectButton";
 import LineChart from "../../components/LineChart";
 import generateCameraData from "../../utils/generateCameraData";
-import { DatePicker, Select, Spin } from 'antd';
+import { DatePicker, Select, Spin, Table } from 'antd';
 import dayjs from 'dayjs';
 
 import { getProjectList, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture, uploadFiberExcel } from "@/api/project";
@@ -42,6 +43,108 @@ interface RawPoint {
     row: number;
     column: number;
 }
+
+interface DeviceItem {
+    key: string;
+    deviceId: string;
+    deviceName: string;
+    status: 'online' | 'offline' | 'warning';
+    mode: string;
+    lastTime: string;
+    pointCount: number;
+}
+
+const tableColumns = [
+    {
+        title: '设备编号',
+        dataIndex: 'deviceId',
+        key: 'deviceId',
+        width: 120,
+    },
+    {
+        title: '设备名称',
+        dataIndex: 'deviceName',
+        key: 'deviceName',
+        width: 160,
+        ellipsis: true,
+    },
+    {
+        title: '运行状态',
+        dataIndex: 'status',
+        key: 'status',
+        width: 100,
+        render: (status) => {
+            const map = {
+                online: { text: '在线', color: '#52c41a' },
+                offline: { text: '离线', color: '#999' },
+                warning: { text: '告警', color: '#faad14' },
+            };
+            return (
+                <span style={{ color: map[status].color }}>
+                    {map[status].text}
+                </span>
+            );
+        },
+    },
+    {
+        title: '运行模式',
+        dataIndex: 'mode',
+        key: 'mode',
+        width: 120,
+    },
+    {
+        title: '最新通讯时间',
+        dataIndex: 'lastTime',
+        key: 'lastTime',
+        width: 180,
+    },
+    {
+        title: '测量点数',
+        dataIndex: 'pointCount',
+        key: 'pointCount',
+        width: 100,
+        align: 'right',
+    },
+];
+
+const dataSource: DeviceItem[] = [
+    {
+        key: '1',
+        deviceId: 'DEV-001',
+        deviceName: '桥梁振动监测终端-1',
+        status: 'online',
+        mode: '自动监测',
+        lastTime: '2025-12-18 15:42:10',
+        pointCount: 128,
+    },
+    {
+        key: '2',
+        deviceId: 'DEV-002',
+        deviceName: '桥梁应变采集设备-2',
+        status: 'warning',
+        mode: '人工巡检',
+        lastTime: '2025-12-18 15:35:46',
+        pointCount: 96,
+    },
+    {
+        key: '3',
+        deviceId: 'DEV-003',
+        deviceName: '环境监测终端-北侧',
+        status: 'online',
+        mode: '自动监测',
+        lastTime: '2025-12-18 15:40:02',
+        pointCount: 64,
+    },
+    {
+        key: '4',
+        deviceId: 'DEV-004',
+        deviceName: '位移监测设备-南侧',
+        status: 'offline',
+        mode: '停用',
+        lastTime: '2025-12-17 22:18:09',
+        pointCount: 0,
+    },
+];
 
 export default function Home() {
     const [settingOpening, setSettingOpening] = useState(false);
@@ -92,12 +195,15 @@ export default function Home() {
     const [uploading, setUploading] = useState(false)
 
     const [cameraInGrid, setCameraInGrid] = useState([
-        { sensorId: 1,sensorName: "Point_1", pointId: "12", selected: true},
-        { sensorId: 2, sensorName: "Point_2", pointId: "55", selected: true},
-        { sensorId: 3, sensorName: "Point_3", pointId: "95", selected: true},
-        { sensorId: 4, sensorName: "Point_4", pointId: "164", selected: true},
-        { sensorId: 5, sensorName: "Point_5", pointId: "233", selected: true},
+        { sensorId: 1, sensorName: "Point_1", pointId: "12", selected: true },
+        { sensorId: 2, sensorName: "Point_2", pointId: "55", selected: true },
+        { sensorId: 3, sensorName: "Point_3", pointId: "95", selected: true },
+        { sensorId: 4, sensorName: "Point_4", pointId: "164", selected: true },
+        { sensorId: 5, sensorName: "Point_5", pointId: "233", selected: true },
     ])
+
+    const [showProjItem, setShowProjItem] = useState(false);
+    const [showProjItemPos, setShowProjItemPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     useEffect(() => {
         loadData();
@@ -422,7 +528,7 @@ export default function Home() {
         fileRef.current?.click();
     };
 
-    const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         const projectId = getActiveProjectId();
         if (!projectId) {
@@ -430,23 +536,42 @@ export default function Home() {
             return;
         }
         if (!file) return;
-
         console.log("选择的文件：", file);
-
-        // 调用上传接口
-        uploadFiberExcel(projectId, file);
+        try {
+            console.log("开始上传文件", file);
+            await uploadFiberExcel(projectId, file);
+            // 到这里，说明“上传已完成并且成功”
+            await getActiveProjectFiberImportTime(projectId);
+            // 再拉最新数据
+        } catch (err) {
+            console.error("上传失败", err);
+        }
     };
+
+    const showProjData = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        setShowProjItemPos({ top: rect.top, left: rect.left + rect.width });
+        setShowProjItem(true);
+    }
+
+    const hideProjData = () => {
+        setShowProjItem(false);
+    }
+
+    const enterTable = () => {
+        setShowProjItem(true);
+    }
 
     const fiberStretchStyle = fullScreenRightTop
         ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
         : fullScreenRightBottom
-        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
-        : { transition: "all 0.8s ease" };
+            ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+            : { transition: "all 0.8s ease" };
     const cameraStretchStyle = fullScreenRightBottom
         ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
         : fullScreenRightTop
-        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
-        : { transition: "all 0.8s ease" };
+            ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+            : { transition: "all 0.8s ease" };
 
     return (
         <div className="home">
@@ -463,7 +588,7 @@ export default function Home() {
                     <div className="left-led"></div>
                     <div className="left-list">
                         {projectList.map((item) => (
-                            <div key={item.projectId} className={`list-item ${item.active ? "active" : ""}`} onClick={() => ClickItem(item.projectId)}>
+                            <div key={item.projectId} className={`list-item ${item.active ? "active" : ""}`} onClick={() => ClickItem(item.projectId)} onMouseEnter={showProjData} onMouseLeave={hideProjData}>
                                 <div
                                     className="item-led"
                                     style={{
@@ -473,6 +598,25 @@ export default function Home() {
                                 {item.projectName}
                             </div>
                         ))}
+                    </div>
+                    <div
+                        className={`project-data ${showProjItem ? 'project-data-show' : 'project-data-hide'}`}
+                        style={{
+                            position: 'fixed',
+                            top: showProjItemPos.top,
+                            left: showProjItemPos.left,
+                        }}
+                        onMouseEnter={enterTable}
+                        onMouseLeave={hideProjData}
+                    >
+                        <Table
+                            className="project-table"
+                            columns={tableColumns}
+                            dataSource={dataSource}
+                            size="small"
+                            pagination={false}
+                            rowKey="key"
+                        />
                     </div>
                 </div>
                 <div className="home-content-right" style={fullScreenRightBottom || fullScreenRightBottom ? { gap: 0 } : {}}>

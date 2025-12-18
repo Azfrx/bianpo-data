@@ -140,6 +140,45 @@ div {
     z-index: 1;
 }
 
+.project-data {
+    background-color: #0f86bdc7;
+    width: 1200px;
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 1000;
+    transition:
+        opacity 500ms ease,
+        transform 500ms ease;
+}
+
+.project-data-show {
+    opacity: 0.95;
+    transform: translateX(0px);
+    pointer-events: auto;
+    backdrop-filter: blur(8px);
+}
+
+.project-data-hide {
+    opacity: 0;
+    transform: translateX(-20px);
+    pointer-events: none;
+}
+
+.project-table .ant-table {
+    background-color: transparent;
+}
+
+.project-table .ant-table-container {
+    background-color: transparent;
+}
+
+/* 表头背景 */
+.project-table .ant-table-thead>tr>th {
+    background-color: transparent;
+    color: #fff;
+}
+
+
 .item-led {
     width: 12px;
     height: 100%;
@@ -619,8 +658,8 @@ div {
 }
 
 .loading-text {
-  font-size: 16px;
-  color: #00f7ff;
+    font-size: 16px;
+    color: #00f7ff;
 }
 
 .camera-options {
