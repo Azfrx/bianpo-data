@@ -5,6 +5,13 @@ export function getProjectList() {
     return request.get("/project/list");
 }
 
+// 获取项目设备信息
+export function getProjectDeviceInfo(projectId: number) {
+    return request.get("/device/list", {
+        params: { projectId },
+    });
+}
+
 // 根据项目 id + 日期获取光纤数据
 export function getFiberData(projectId: number, startTime: string, endTime: string) {
     return request.get("/fiber/list", {
