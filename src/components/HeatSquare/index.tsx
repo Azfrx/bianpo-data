@@ -8,6 +8,7 @@ interface HeatSquareProps {
     showName?: boolean;
     value: number; // 唯一差值
     maxDiff?: number; // 最大值用于映射
+    lightInfo?: { strainMappingId: number; pointName: string; };
 }
 
 const HeatSquare = ({
@@ -17,6 +18,7 @@ const HeatSquare = ({
     lighting,
     value,
     maxDiff = 100,
+    lightInfo,
 }: HeatSquareProps) => {
     const [tooltip, setTooltip] = useState({ visible: false, x: 0, y: 0 });
 
@@ -84,6 +86,7 @@ const HeatSquare = ({
                     style={{ top: tooltip.y, left: tooltip.x }}
                 >
                     <strong>{name}</strong>
+                    {lightInfo && (<div>关联靶点：{lightInfo.pointName}</div>)}
                     <div>差值：{value}</div>
                 </div>
             )}

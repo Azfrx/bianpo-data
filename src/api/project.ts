@@ -58,3 +58,10 @@ export function uploadFiberExcel(projectId: number, file: File) {
         },
     });
 }
+
+// 获取靶点关联信息 预警最大值最小值
+export function getSensorAboutAndLimit(projectId: number) {
+    return request.get("/sensor/list", {
+        params: { projectId },
+    });
+}

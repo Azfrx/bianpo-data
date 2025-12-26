@@ -9,7 +9,7 @@ import generateCameraData from "../../utils/generateCameraData";
 import { DatePicker, Select, Spin, Table } from "antd";
 import dayjs from "dayjs";
 
-import { getProjectList, getProjectDeviceInfo, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture, uploadFiberExcel } from "@/api/project";
+import { getProjectList, getProjectDeviceInfo, getFiberData, getFiberPoint, getSensorList, getFiberImportTime, getSensorPicture, uploadFiberExcel, getSensorAboutAndLimit } from "@/api/project";
 import "./index.css";
 
 import colseArrow from "../../assets/arrow-close.svg";
@@ -42,6 +42,7 @@ interface RawPoint {
     value: number;
     row: number;
     column: number;
+    pointName: string;
 }
 
 interface DeviceItem {
@@ -54,6 +55,15 @@ interface DeviceItem {
     pointCount: number;
     runStatus: string;
 }
+
+type sensorOtherData = {
+    id: number;
+    offsetMaxValue: number;
+    offsetMinValue: number;
+    pointName: string;
+    strainMappingId: number;
+    strainMappingName: string;
+};
 
 const tableColumns = [
     {
@@ -77,14 +87,14 @@ const tableColumns = [
     },
     {
         title: "设备序列号",
-        dataIndex: "installAddress",
-        key: "installAddress",
+        dataIndex: "deviceSn",
+        key: "deviceSn",
         width: 180,
     },
     {
         title: "安装位置",
-        dataIndex: "deviceSn",
-        key: "deviceSn",
+        dataIndex: "installAddress",
+        key: "installAddress",
         width: 100,
     },
     {
@@ -145,6 +155,7 @@ export default function Home() {
     const [pointXData, setPointXData] = useState<string[]>([]);
     const [pointYData, setPointYData] = useState<number[][]>([]);
     const [pointId, setPointId] = useState<string>("");
+    const [pointName, setPointName] = useState<string>("");
     const [gridData, setGridData] = useState<RawPoint[]>([]);
 
     const [openLeft, setOpenLeft] = useState(true);
@@ -175,6 +186,7 @@ export default function Home() {
     // const [showProjItemPos, setShowProjItemPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
     const [deviceInfo, setDeviceInfo] = useState<DeviceItem[]>([]);
+    const [sensorAboutAndLimit, setSensorAboutAndLimit] = useState<sensorOtherData[]>([]);
 
     useEffect(() => {
         loadData();
@@ -188,6 +200,10 @@ export default function Home() {
                 const deviceInfo = await getProjectDeviceInfo(projectId);
                 console.log("设备信息：", deviceInfo);
                 setDeviceInfo(deviceInfo.data);
+
+                const sensorAboutAndLimit = await getSensorAboutAndLimit(projectId!);
+                console.log("传感器关联信息及限制：", sensorAboutAndLimit);
+                setSensorAboutAndLimit(sensorAboutAndLimit.data);
 
                 const importTime = await getActiveProjectFiberImportTime(projectId);
                 setFiberImportTime(importTime);
@@ -348,15 +364,16 @@ export default function Home() {
     };
 
     // 点击光纤点 获取点位数据
-    const handleClickPoint = async (pointId: string) => {
-        const pointDataRes = await getFiberPoint(Number(pointId));
+    const handleClickPoint = async (cell: RawPoint) => {
+        const pointDataRes = await getFiberPoint(Number(cell.pointId));
         console.log("光纤点位数据：", pointDataRes.data);
         const records: { timestamp: string; value: number }[] = pointDataRes.data.records;
         const timestamps = records.map((record) => record.timestamp).reverse();
         const values = records.map((record) => record.value).reverse();
         setPointXData(timestamps);
         setPointYData([values]);
-        setPointId(pointId);
+        setPointId(cell.pointId);
+        setPointName(cell.pointName);
     };
 
     const ClickItem = (id: number) => {
@@ -544,13 +561,13 @@ export default function Home() {
     const fiberStretchStyle = fullScreenRightTop
         ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
         : fullScreenRightBottom
-        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
-        : { transition: "all 0.8s ease" };
+            ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+            : { transition: "all 0.8s ease" };
     const cameraStretchStyle = fullScreenRightBottom
         ? { height: "100%", maxHeight: "100%", flex: 1, overflow: "hidden", transition: "all 0.8s ease" }
         : fullScreenRightTop
-        ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
-        : { transition: "all 0.8s ease" };
+            ? { height: 0, flex: 0, padding: 0, overflow: "hidden", transition: "all 0.8s ease", border: "none" }
+            : { transition: "all 0.8s ease" };
 
     return (
         <div className="home">
@@ -571,8 +588,8 @@ export default function Home() {
                                 <div
                                     className={`list-item ${item.active ? "active" : ""}`}
                                     onClick={() => ClickItem(item.projectId)}
-                                    // onMouseEnter={showProjData}
-                                    // onMouseLeave={hideProjData}
+                                // onMouseEnter={showProjData}
+                                // onMouseLeave={hideProjData}
                                 >
                                     <div
                                         className="item-led"
@@ -823,9 +840,12 @@ export default function Home() {
                             <NewHeatmapGrid
                                 pointId={pointId}
                                 data={gridData}
-                                cameraInGrid={cameraInGrid}
-                                clickPoint={(pointId) => {
-                                    handleClickPoint(pointId);
+                                cameraInGrid={sensorAboutAndLimit.map((item) => ({
+                                    strainMappingId: item.strainMappingId,
+                                    pointName: item.pointName,
+                                }))}
+                                clickPoint={(cell) => {
+                                    handleClickPoint(cell);
                                 }}
                             />
                             {/* <HeatmapGrid
@@ -838,7 +858,7 @@ export default function Home() {
                             /> */}
                         </div>
                         <div className="gx-chart">
-                            <LineChart title="" xName="时间" yName={[`${pointId}点位数据`]} xData={pointXData} yData={pointYData} />
+                            <LineChart title="" xName="时间" yName={[`${pointName}-${pointId}点位`]} xData={pointXData} yData={pointYData} />
                         </div>
                     </div>
                     <div className="right-camera" style={cameraStretchStyle}>
@@ -923,6 +943,7 @@ export default function Home() {
                                 yName={cameraNames}
                                 xData={xData}
                                 yData={yData}
+                                limitLines={sensorAboutAndLimit}
                                 showPic={true}
                                 shiftImgMap={shiftImgMap}
                                 openPicturePanel={(pictureUrl: string, seriesName: string, pictureTime: string) => {

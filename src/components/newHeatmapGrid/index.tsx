@@ -7,13 +7,14 @@ interface RawPoint {
     value: number;
     row: number;
     column: number;
+    pointName: string;
 }
 
 interface HeatmapGridProps {
     data: RawPoint[]; // ← 改为从外部传入真实数据
-    clickPoint: (point: string) => void;
+    clickPoint: (cell: RawPoint) => void;
     pointId: string;
-    cameraInGrid: { sensorId: number; sensorName: string; pointId: string; selected: boolean }[];
+    cameraInGrid: { strainMappingId: number; pointName: string; }[];
     showSquareName?: boolean;
     showGridLine?: boolean;
     maxDiff?: number;
@@ -21,7 +22,7 @@ interface HeatmapGridProps {
 
 const HeatmapGrid: React.FC<HeatmapGridProps> = ({ data, showSquareName = false, showGridLine = false, maxDiff = 15, pointId, cameraInGrid, clickPoint }) => {
     const lightingPoints = useMemo(() => {
-        return cameraInGrid.filter((item) => item.selected).map((item) => item.pointId);
+        return cameraInGrid.map((item) => `${item.strainMappingId}`);
     }, [cameraInGrid]);
 
     /** 计算真实行列数 */
@@ -94,8 +95,8 @@ const HeatmapGrid: React.FC<HeatmapGridProps> = ({ data, showSquareName = false,
                         <div className="row-label">{rowIndex + 1}</div>
                         {row.map((cell, colIndex) =>
                             cell ? (
-                                <div className={"grid-cell"} key={cell.pointId} onClick={() => clickPoint(cell.pointId)}>
-                                    <HeatSquare selectedPointId={pointId} name={cell.pointId} value={cell.value} maxDiff={maxDiff} showName={showSquareName} lighting={lightingPoints.includes(cell.pointId)} />
+                                <div className={"grid-cell"} key={cell.pointId} onClick={() => clickPoint(cell)}>
+                                    <HeatSquare selectedPointId={pointId} name={cell.pointId} value={cell.value} maxDiff={maxDiff} showName={showSquareName} lighting={lightingPoints.includes(cell.pointId)} lightInfo={cameraInGrid.find(item => `${item.strainMappingId}` === cell.pointId)} />
                                 </div>
                             ) : (
                                 <div className="grid-cell" key={`empty-${rowIndex}-${colIndex}`}>

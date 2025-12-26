@@ -7,6 +7,7 @@ interface LineChartData {
     yName: string[];
     xData: string[];
     yData: number[][];
+    limitLines: { id: number; offsetMaxValue: number; offsetMinValue: number, pointName: string, strainMappingId: number, strainMappingName: string }[];
     showPic?: boolean;
     shiftImgMap?: { [key: number]: string };
     openPicturePanel?: (pictureUrl: string, seriesName: string, pictureTime: string) => void;
@@ -22,11 +23,11 @@ function getVisibleSensors(selected: Record<string, boolean>): Set<string> {
     );
 }
 
-const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, openPicturePanel }: LineChartData) => {
+const LineChart = ({ title, xName, yName, xData, yData, limitLines, showPic, shiftImgMap, openPicturePanel }: LineChartData) => {
     const chartRef = useRef(null); // 引用 DOM 节点
     const chartInstanceRef = useRef<echarts.EChartsType | null>(null);
     const legendSelectedRef = useRef<Record<string, boolean>>({});
-
+    
     // 判断是否存在以 -Y 结尾的线（需要右轴）
     const hasYLine = yName.some((name) => name.endsWith("-Y"));
     // 构造 yAxis（始终是数组，至少包含左轴）
@@ -118,11 +119,12 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
             resizeObserver.disconnect();
             chart.dispose();
         };
-    }, []);
+    }, [limitLines]);
 
     function addLimitLine(pointId: string, chart: echarts.EChartsType) {
-        const upperLimit = 110;
-        const lowerLimit = -110;
+        const currentLines = limitLines.find((line) => line.pointName === pointId);
+        const upperLimit = currentLines?.offsetMaxValue || 110;
+        const lowerLimit = currentLines?.offsetMinValue || -110;
 
         const currentOption = chart.getOption();
 
@@ -143,8 +145,8 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
                                 position: "end",
                             },
                             data: [
-                                { yAxis: upperLimit, label: { formatter: "上限" } },
-                                { yAxis: lowerLimit, label: { formatter: "下限" } },
+                                { yAxis: upperLimit, label: { formatter: `上限${upperLimit}` } },
+                                { yAxis: lowerLimit, label: { formatter: `下限${lowerLimit}` } },
                             ],
                         },
                     };
@@ -265,7 +267,7 @@ const LineChart = ({ title, xName, yName, xData, yData, showPic, shiftImgMap, op
                     lineStyle: { color: "#fff" },
                 },
                 nameLocation: "end",
-                nameGap: 20, // 调整名称与坐标轴的距离，数值越小越靠上
+                nameGap: hasYLine ? 20 : 10, // 调整名称与坐标轴的距离，数值越小越靠近
                 nameTextStyle: { color: "#fff" },
             },
             yAxis,
